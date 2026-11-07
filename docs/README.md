@@ -681,3 +681,7 @@ interval/timeout, the human translation type list, and the write‑back options)
 ## Support triage
 
 - `.github/workflows/support-triage.yml`: support requests from the Supertext integrations website arrive as issues labelled `support` (contact details stay in the Supertext CMS). Claude classifies each one: answers questions (marked `<!-- supertext:reply -->`, emailed to the sender by the CMS) and closes them, fixes bugs as pull requests for review (never merged automatically), labels feature requests `feature-request`. Only people with triage rights can add labels, so outsiders can't start it. Needs the organisation secret `ANTHROPIC_API_KEY`; the workflow is the same in every Supertext repo.
+
+## Support
+
+Questions, problems or ideas: use the [Supertext support form](https://integrations.supertext.com/en/support?platform=wordpress). Mention the version of WordPress (Polylang) and of the plugin, what you did and what you expected; an error message helps a lot. You get an answer by email, in your language.

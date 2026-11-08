@@ -44,7 +44,9 @@ COPY demo/docker/setup.php /usr/local/share/wordpress-demo/setup.php
 COPY demo/docker/entrypoint.sh /usr/local/bin/demo-entrypoint
 # Only $PORT (apache.conf): the default "Listen 80" would clash when several demos share
 # a host network.
-RUN : > /etc/apache2/ports.conf \
+# Railway's health check: a static file (WordPress would redirect / to the public URL).
+RUN echo ok > /var/www/html/healthz \
+    && : > /etc/apache2/ports.conf \
     && chmod +x /usr/local/bin/demo-entrypoint \
     && chown -R www-data:www-data /var/www/html
 

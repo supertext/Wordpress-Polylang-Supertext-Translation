@@ -474,7 +474,7 @@ docker build -f demo/Dockerfile -t wordpress-supertext-demo .
 ```
 
 It runs as the **WordPress** service in the Railway project *supertext-cms-demos-php*
-(Dockerfile path `demo/Dockerfile`, port 8080, database `wordpress` on the shared MySQL)
+(Dockerfile path `demo/Dockerfile`, port 8080, health check `/healthz`, database `wordpress` on the shared MySQL)
 and redeploys on every push to `main`. On every start `demo/docker/entrypoint.sh` creates
 the database if needed, rebuilds `wp-config.php` from the variables, installs WordPress
 once, activates the plugins and runs `demo/docker/setup.php`: languages English (default),

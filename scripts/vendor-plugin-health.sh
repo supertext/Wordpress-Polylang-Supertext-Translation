@@ -18,7 +18,7 @@ trap 'rm -rf "$TMP"' EXIT
 if [ -n "${PLUGIN_HEALTH_DIR:-}" ]; then
     SRC="$PLUGIN_HEALTH_DIR"
 else
-    git clone --quiet https://github.com/Supertext/Commando-Center-Supertext-Translation "$TMP/center"
+    git clone --quiet https://github.com/supertext/Commando-Center-Supertext-Translation "$TMP/center"
     git -C "$TMP/center" checkout --quiet "$REF"
     SRC="$TMP/center"
 fi
@@ -38,7 +38,7 @@ printf '%s\n' "$VERSION" > "$DEST/VERSION"
 cat > "$DEST/README.md" <<EOT
 # Supertext Plugin Health (bundled copy)
 
-PHP part of [Supertext Plugin Health](https://github.com/Supertext/Commando-Center-Supertext-Translation/tree/main/plugin-health)
+PHP part of [Supertext Plugin Health](https://github.com/supertext/Commando-Center-Supertext-Translation/tree/main/plugin-health)
 (MIT licence, see LICENSE), version $VERSION, commit \`$COMMIT\`, namespace \`Supertext\\Polylang\\PluginHealth\`
 instead of \`Supertext\\PluginHealth\`.
 

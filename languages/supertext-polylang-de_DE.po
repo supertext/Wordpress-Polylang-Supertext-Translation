@@ -971,3 +971,33 @@ msgstr "Supertext für Polylang: Polylang Pro ist aktiv, wurde aber nicht gepatc
 
 msgid "Patch Polylang now →"
 msgstr "Polylang jetzt patchen →"
+
+msgid "AI translation (API key)"
+msgstr "KI-Übersetzung (API-Schlüssel)"
+
+msgid "Professional translation (account email and Order API Key)"
+msgstr "Professionelle Übersetzung (Konto-E-Mail-Adresse und Order-API-Schlüssel)"
+
+msgid "API key check: %s"
+msgstr "Prüfung des API-Schlüssels: %s"
+
+msgid "Send installed plugins to Supertext"
+msgstr "Installierte Plugins an Supertext senden"
+
+msgid "Sends Supertext the list of the plugins and themes installed on this site (name, version, active or not), so Supertext support can help with conflicts. Nothing else is sent."
+msgstr "Sendet Supertext die Liste der auf dieser Website installierten Plugins und Themes (Name, Version, aktiv oder nicht), damit der Supertext-Support bei Konflikten helfen kann. Sonst wird nichts übertragen."
+
+msgid "Sent: %d plugins and themes."
+msgstr "Gesendet: %d Plugins und Themes."
+
+msgid "Turn on “%s” to send the list."
+msgstr "Aktivieren Sie „%s“, um die Liste zu senden."
+
+msgid "The list couldn't be sent. Try again later."
+msgstr "Die Liste konnte nicht gesendet werden. Versuchen Sie es später erneut."
+
+msgid "Supertext rejected the account email or the Order API Key. Check both; you find the Order API Key in your %1$s. No Supertext account yet? Create one at %2$s."
+msgstr "Supertext hat die Konto-E-Mail-Adresse oder den Order-API-Schlüssel abgelehnt. Prüfen Sie beides; den Order-API-Schlüssel finden Sie in %1$s. Noch kein Supertext-Konto? Erstellen Sie eines auf %2$s."
+
+msgid "Enter both the account email and the Order API Key for professional translations; you find the Order API Key in your %1$s. No Supertext account yet? Create one at %2$s."
+msgstr "Tragen Sie für professionelle Übersetzungen sowohl die Konto-E-Mail-Adresse als auch den Order-API-Schlüssel ein; den Order-API-Schlüssel finden Sie in %1$s. Noch kein Supertext-Konto? Erstellen Sie eines auf %2$s."

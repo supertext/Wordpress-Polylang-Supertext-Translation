@@ -971,3 +971,33 @@ msgstr "Supertext pour Polylang : Polylang Pro est actif mais n'a pas été pat
 
 msgid "Patch Polylang now →"
 msgstr "Patcher Polylang maintenant →"
+
+msgid "AI translation (API key)"
+msgstr "Traduction IA (clé API)"
+
+msgid "Professional translation (account email and Order API Key)"
+msgstr "Traduction professionnelle (adresse e-mail du compte et clé API de commande)"
+
+msgid "API key check: %s"
+msgstr "Vérification de la clé API : %s"
+
+msgid "Send installed plugins to Supertext"
+msgstr "Envoyer les plugins installés à Supertext"
+
+msgid "Sends Supertext the list of the plugins and themes installed on this site (name, version, active or not), so Supertext support can help with conflicts. Nothing else is sent."
+msgstr "Envoie à Supertext la liste des plugins et thèmes installés sur ce site (nom, version, actif ou non), afin que le support Supertext puisse vous aider en cas de conflit. Rien d'autre n'est transmis."
+
+msgid "Sent: %d plugins and themes."
+msgstr "Envoyé : %d plugins et thèmes."
+
+msgid "Turn on “%s” to send the list."
+msgstr "Activez « %s » pour envoyer la liste."
+
+msgid "The list couldn't be sent. Try again later."
+msgstr "La liste n'a pas pu être envoyée. Réessayez plus tard."
+
+msgid "Supertext rejected the account email or the Order API Key. Check both; you find the Order API Key in your %1$s. No Supertext account yet? Create one at %2$s."
+msgstr "Supertext a refusé l'adresse e-mail du compte ou la clé API de commande. Vérifiez les deux ; vous trouverez la clé API de commande dans %1$s. Pas encore de compte Supertext ? Créez-en un sur %2$s."
+
+msgid "Enter both the account email and the Order API Key for professional translations; you find the Order API Key in your %1$s. No Supertext account yet? Create one at %2$s."
+msgstr "Saisissez l'adresse e-mail du compte et la clé API de commande pour les traductions professionnelles ; vous trouverez la clé API de commande dans %1$s. Pas encore de compte Supertext ? Créez-en un sur %2$s."

@@ -282,6 +282,7 @@ class Page {
 					$reports ? 'ok' : 'off',
 					$reports ? __( 'On', 'supertext-polylang' ) : __( 'Off', 'supertext-polylang' )
 				);
+				self::render_send_extensions_row();
 
 				// Optional features & third-party integrations (a disabled feature is a
 				// choice, not an error — shown neutral rather than red).
@@ -335,13 +336,15 @@ class Page {
 	 * @return void
 	 */
 	private static function render_key_check_row(): void {
-		$check = Commando::last_check();
-		if ( null === $check ) {
+		$checks = Commando::last_checks();
+		if ( array() === $checks ) {
 			self::state_row( __( 'API key check', 'supertext-polylang' ), 'off', __( 'Not checked yet', 'supertext-polylang' ) );
-		} else {
-			$message = Commando::message( $check, true );
+		}
+		foreach ( $checks as $name => $check ) {
+			$message = Commando::message( $check, true, $name );
 			$state   = 'success' === $message['type'] ? 'ok' : ( 'error' === $message['type'] ? 'bad' : 'warn' );
-			self::state_row( __( 'API key check', 'supertext-polylang' ), $state, Mt_Settings::checked_at( $check ) );
+			/* translators: %s: which key, e.g. "AI translation (API key)". */
+			self::state_row( sprintf( __( 'API key check: %s', 'supertext-polylang' ), Commando::key_label( $name ) ), $state, Mt_Settings::checked_at( $check ) );
 			printf(
 				'<div class="st-row"><span class="st-row__label">%s</span></div>',
 				wp_kses( $message['text'], array( 'a' => array( 'href' => array(), 'target' => array(), 'rel' => array() ) ) )
@@ -353,6 +356,24 @@ class Page {
 				<input type="hidden" name="action" value="<?php echo esc_attr( Commando::TEST_ACTION ); ?>" />
 				<?php wp_nonce_field( Commando::TEST_ACTION ); ?>
 				<?php submit_button( __( 'Test connection', 'supertext-polylang' ), 'secondary', 'submit', false ); ?>
+			</form>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Prints the *Send installed plugins to Supertext* button with its help text.
+	 *
+	 * @return void
+	 */
+	private static function render_send_extensions_row(): void {
+		?>
+		<div class="st-row">
+			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+				<input type="hidden" name="action" value="<?php echo esc_attr( Commando::EXTENSIONS_ACTION ); ?>" />
+				<?php wp_nonce_field( Commando::EXTENSIONS_ACTION ); ?>
+				<?php submit_button( __( 'Send installed plugins to Supertext', 'supertext-polylang' ), 'secondary', 'submit', false ); ?>
+				<p class="description"><?php esc_html_e( 'Sends Supertext the list of the plugins and themes installed on this site (name, version, active or not), so Supertext support can help with conflicts. Nothing else is sent.', 'supertext-polylang' ); ?></p>
 			</form>
 		</div>
 		<?php
@@ -427,13 +448,18 @@ class Page {
 		$notice_key = self::NOTICE_TRANSIENT . '_' . get_current_user_id();
 		$notice     = get_transient( $notice_key );
 		$tested     = Commando::take_test_result();
-		if ( null !== $tested ) {
-			$message = Commando::message( $tested, true );
+		foreach ( $tested ?? array() as $name => $check ) {
+			$message = Commando::message( $check, true, $name );
 			printf(
-				'<div class="notice notice-%s is-dismissible"><p>%s</p></div>',
+				'<div class="notice notice-%s is-dismissible"><p><strong>%s:</strong> %s</p></div>',
 				esc_attr( $message['type'] ),
+				esc_html( Commando::key_label( $name ) ),
 				wp_kses( $message['text'], array( 'a' => array( 'href' => array(), 'target' => array(), 'rel' => array() ) ) )
 			);
+		}
+		$sent = Commando::take_extensions_result();
+		if ( null !== $sent ) {
+			printf( '<div class="notice notice-%s is-dismissible"><p>%s</p></div>', esc_attr( $sent['type'] ), esc_html( $sent['text'] ) );
 		}
 		if ( is_array( $notice ) ) {
 			delete_transient( $notice_key );

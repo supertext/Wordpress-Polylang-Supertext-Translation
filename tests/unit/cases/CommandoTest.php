@@ -7,7 +7,9 @@ namespace Supertext\Polylang\Tests\Cases;
 
 use Brain\Monkey\Functions;
 use Supertext\Polylang\PluginHealth\KeyCheck;
+use Supertext\Polylang\Admin\Settings;
 use Supertext\Polylang\Reporting\Commando;
+use Supertext\Polylang\Reporting\Reporting;
 use Supertext\Polylang\Sdk\Http\HttpRequest;
 use Supertext\Polylang\Sdk\Http\HttpResponse;
 use Supertext\Polylang\Sdk\Http\HttpTransport;
@@ -155,5 +157,83 @@ class CommandoTest extends TestCase {
 
 		$this->assertSame( KeyCheck::INVALID, Commando::last_check()->status );
 		$this->assertCount( 1, $this->requests, 'the api_key_check report, no request to Supertext' );
+	}
+
+	public function test_professional_orders_credentials_are_checked_and_reported_by_name(): void {
+		$this->options['supertext_polylang_settings'] = array(
+			'human_email'   => 'shop@example.ch',
+			'human_api_key' => 'order-key',
+		);
+
+		$checks = Commando::test_connection();
+
+		$this->assertSame( array( Reporting::KEY_AI, Reporting::KEY_ORDERS ), array_keys( $checks ) );
+		$this->assertSame( KeyCheck::OK, $checks[ Reporting::KEY_ORDERS ]->status );
+		$this->assertSame( 'https://www.supertext.com/api/v1/util/ordertype/' . Settings::service_id(), $this->requests[1]->url );
+		$this->assertSame( KeyCheck::OK, Commando::last_check( Reporting::KEY_ORDERS )->status );
+		$this->assertCount( 2, Commando::last_checks() );
+	}
+
+	public function test_orders_messages_point_to_the_account_settings(): void {
+		foreach ( array( KeyCheck::INVALID, KeyCheck::MISSING ) as $status ) {
+			$html = Commando::message( new KeyCheck( $status, '2026-10-14T08:00:00Z' ), true, Reporting::KEY_ORDERS );
+			$this->assertSame( 'error', $html['type'] );
+			$this->assertStringContainsString( 'href="https://www.supertext.com/services/customer/accountsettings" target="_blank" rel="noopener"', $html['text'] );
+			$this->assertStringContainsString( 'href="https://www.supertext.com/person/en/account/signin" target="_blank" rel="noopener"', $html['text'] );
+			$this->assertStringContainsString( 'Order API Key', $html['text'] );
+		}
+		$ok = Commando::message( new KeyCheck( KeyCheck::OK, '2026-10-14T08:00:00Z' ), true, Reporting::KEY_ORDERS );
+		$this->assertSame( 'success', $ok['type'] );
+	}
+
+	public function test_installed_extensions_lists_plugins_and_themes_without_paths(): void {
+		$theme = new class() {
+			private $data;
+			public function __construct( array $data = array( 'Name' => 'Twenty Twenty-Five', 'Version' => '1.2' ) ) {
+				$this->data = $data;
+			}
+			public function get( $key ) {
+				return $this->data[ $key ] ?? '';
+			}
+		};
+		Functions\when( 'get_plugins' )->justReturn(
+			array(
+				'polylang-pro/polylang.php' => array( 'Name' => 'Polylang Pro', 'Version' => '3.7.2' ),
+				'akismet/akismet.php'       => array( 'Name' => 'Akismet Anti-spam', 'Version' => '5.3' ),
+			)
+		);
+		Functions\when( 'is_plugin_active' )->alias( static fn( $file ) => 'polylang-pro/polylang.php' === $file );
+		Functions\when( 'get_mu_plugins' )->justReturn( array( 'host.php' => array( 'Name' => '', 'Version' => '' ) ) );
+		Functions\when( 'get_dropins' )->justReturn( array() );
+		Functions\when( 'wp_get_themes' )->justReturn( array( 'twentytwentyfive' => $theme ) );
+		Functions\when( 'get_stylesheet' )->justReturn( 'twentytwentyfive' );
+		Functions\when( 'get_template' )->justReturn( 'twentytwentyfive' );
+
+		$this->assertSame(
+			array(
+				array( 'name' => 'Polylang Pro', 'version' => '3.7.2', 'active' => true, 'type' => 'plugin' ),
+				array( 'name' => 'Akismet Anti-spam', 'version' => '5.3', 'active' => false, 'type' => 'plugin' ),
+				array( 'name' => 'host.php', 'version' => '', 'active' => true, 'type' => 'mu-plugin' ),
+				array( 'name' => 'Twenty Twenty-Five', 'version' => '1.2', 'active' => true, 'type' => 'theme' ),
+			),
+			Commando::installed_extensions()
+		);
+
+		$this->assertSame( array( 'status' => 'sent', 'count' => 4 ), Commando::send_extensions() );
+		$report = json_decode( (string) end( $this->requests )->body, true );
+		$this->assertSame( 'extensions', $report['event'] );
+		$this->assertCount( 4, $report['extensions'] );
+
+		$this->options['supertext_polylang_settings'] = array( 'version_reports' => false );
+		$this->requests                               = array();
+		$this->assertSame( array( 'status' => 'off', 'count' => 0 ), Commando::send_extensions() );
+		$this->assertSame( array(), $this->requests );
+	}
+
+	public function test_extensions_messages(): void {
+		$this->assertSame( array( 'type' => 'success', 'text' => 'Sent: 12 plugins and themes.' ), Commando::extensions_message( 'sent', 12 ) );
+		$this->assertSame( 'warning', Commando::extensions_message( 'off', 0 )['type'] );
+		$this->assertStringContainsString( 'Send version information to Supertext', Commando::extensions_message( 'off', 0 )['text'] );
+		$this->assertSame( 'error', Commando::extensions_message( 'failed', 0 )['type'] );
 	}
 }

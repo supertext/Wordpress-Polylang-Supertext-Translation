@@ -13,7 +13,9 @@ use Supertext\Polylang\PluginHealth\KeyCheck;
 use Supertext\Polylang\PluginHealth\PingResponse;
 use Supertext\Polylang\PluginHealth\ReporterResult;
 use Supertext\Polylang\PluginHealth\ReporterState;
+use Supertext\Polylang\Sdk\Http\HttpRequest;
 use Supertext\Polylang\Sdk\Http\HttpTransport;
+use Supertext\Polylang\Sdk\Http\TransportException;
 use Supertext\Polylang\Sdk\Supertext;
 use Supertext\Polylang\Sdk\V1\Client;
 use Supertext\Polylang\Sdk\V1\Protocol;
@@ -21,7 +23,11 @@ use Supertext\Polylang\Sdk\V1\Protocol;
 /**
  * Version reports to the Supertext Commando Center, the automatic API key check
  * and the ping (Commando-Center-Supertext-Translation → docs/DEVELOPER.md →
- * Report protocol). The protocol is Supertext Plugin Health's InstallationReporter
+ * Report protocol). The plugin has two Supertext keys, reported by name: the AI
+ * translation API key (KEY_AI, checked with the SDK's checkApiKey()) and the
+ * account email with the Order API Key of professional orders (KEY_ORDERS, checked
+ * with a GET of the order types; see orders_key()). Administrators can also send
+ * the list of installed plugins and themes (send_extensions()). The protocol is Supertext Plugin Health's InstallationReporter
  * (bundled in includes/PluginHealth), with the Supertext SDK's checkApiKey() as its
  * key check; this class only loads the reporter's state, runs one action and
  * stores the new state.
@@ -47,6 +53,28 @@ final class Reporting {
 	 * @var string
 	 */
 	const SYSTEM_NAME = 'WordPress';
+
+	/**
+	 * Names the keys are reported under (the dashboard knows them by these names: never translate or rename them).
+	 *
+	 * @var string
+	 */
+	const KEY_AI     = 'AI translation';
+	const KEY_ORDERS = 'Professional orders';
+
+	/**
+	 * Marks the professional-orders credentials among the keys the checker gets (see orders_key()).
+	 *
+	 * @var string
+	 */
+	const ORDERS_PREFIX = "orders\0";
+
+	/**
+	 * Seconds the professional-orders check may take.
+	 *
+	 * @var int
+	 */
+	const ORDERS_TIMEOUT = 10;
 
 	/**
 	 * Loads the stored state (JSON string, or null).
@@ -83,6 +111,8 @@ final class Reporting {
 	 * @param callable                 $save           Stores the state (JSON).
 	 * @param string|null              $report_url     Tests: the center's URL (default: SUPERTEXT_REPORT_URL, else Plugin Health's).
 	 * @param (callable(): float)|null $now            Tests: wall-clock Unix seconds.
+	 * @param string                   $orders_base_url The order API's base URL (with trailing slash) for the professional-orders check.
+	 * @param int                      $orders_service_id The ServiceID whose order types the professional-orders check reads.
 	 */
 	public function __construct(
 		private readonly bool $enabled,
@@ -95,7 +125,9 @@ final class Reporting {
 		callable $load,
 		callable $save,
 		private readonly ?string $report_url = null,
-		?callable $now = null
+		?callable $now = null,
+		private readonly string $orders_base_url = 'https://www.supertext.com/',
+		private readonly int $orders_service_id = 1
 	) {
 		$this->load = $load;
 		$this->save = $save;
@@ -134,43 +166,78 @@ final class Reporting {
 	}
 
 	/**
-	 * After the settings were saved: checks the key, reports `installed` or `settings_saved`.
+	 * The keys as Plugin Health gets them, by name: the AI key, and the professional-orders
+	 * credentials (email and Order API Key in one value, see orders_key()) when either is set.
 	 *
-	 * @param string $api_key The API key.
+	 * @param string $ai_key       The AI translation API key.
+	 * @param string $orders_email The account email of professional orders.
+	 * @param string $orders_key   The Order API Key.
+	 * @return array<string, string>
+	 */
+	public static function keys( #[\SensitiveParameter] string $ai_key, string $orders_email, #[\SensitiveParameter] string $orders_key ): array {
+		$keys = array( self::KEY_AI => $ai_key );
+		if ( '' !== trim( $orders_email ) || '' !== trim( $orders_key ) ) {
+			$keys[ self::KEY_ORDERS ] = self::orders_key( $orders_email, $orders_key );
+		}
+
+		return $keys;
+	}
+
+	/**
+	 * The professional-orders credentials as one key value: '' when the email or the key is
+	 * missing (the check then says `missing` without a request), else a marked value the
+	 * checker recognizes. Its fingerprint changes with either part; it is never sent.
+	 *
+	 * @param string $email   The account email.
+	 * @param string $api_key The Order API Key.
+	 * @return string
+	 */
+	public static function orders_key( string $email, #[\SensitiveParameter] string $api_key ): string {
+		$email   = trim( $email );
+		$api_key = trim( $api_key );
+
+		return '' === $email || '' === $api_key ? '' : self::ORDERS_PREFIX . $email . "\0" . $api_key;
+	}
+
+	/**
+	 * After the settings were saved: checks the keys, reports `installed` or `settings_saved`.
+	 *
+	 * @param string|array<string, string> $api_key The API key, or the keys by name (keys()).
 	 * @return ReporterResult|null
 	 */
-	public function after_settings_saved( #[\SensitiveParameter] string $api_key ): ?ReporterResult {
+	public function after_settings_saved( #[\SensitiveParameter] string|array $api_key ): ?ReporterResult {
 		return $this->run( static fn( InstallationReporter $r, ReporterState $s ) => $r->afterSettingsSaved( $s, $api_key ) );
 	}
 
 	/**
 	 * Back-end requests that run the plugin's code: checks a changed key, reports what changed.
 	 *
-	 * @param string $api_key The API key.
+	 * @param string|array<string, string> $api_key The API key, or the keys by name (keys()).
 	 * @return ReporterResult|null
 	 */
-	public function on_request( #[\SensitiveParameter] string $api_key ): ?ReporterResult {
+	public function on_request( #[\SensitiveParameter] string|array $api_key ): ?ReporterResult {
 		return $this->run( static fn( InstallationReporter $r, ReporterState $s ) => $r->onRequest( $s, $api_key ) );
 	}
 
 	/**
 	 * A translation got 401/403: the key is invalid (reported once, when the status changes).
 	 *
-	 * @param string $api_key     The API key.
-	 * @param int    $http_status 401 or 403.
+	 * @param string|array<string, string> $api_key     The API key, or the keys by name (keys()).
+	 * @param int                          $http_status 401 or 403.
+	 * @param string|null                  $key_name    With several keys: which one was rejected.
 	 * @return ReporterResult|null
 	 */
-	public function authentication_failed( #[\SensitiveParameter] string $api_key, int $http_status = 401 ): ?ReporterResult {
-		return $this->run( static fn( InstallationReporter $r, ReporterState $s ) => $r->authenticationFailed( $s, $api_key, $http_status ) );
+	public function authentication_failed( #[\SensitiveParameter] string|array $api_key, int $http_status = 401, ?string $key_name = null ): ?ReporterResult {
+		return $this->run( static fn( InstallationReporter $r, ReporterState $s ) => $r->authenticationFailed( $s, $api_key, $http_status, $key_name ) );
 	}
 
 	/**
-	 * *Test connection*: checks the key, reports a change.
+	 * *Test connection*: checks the key(s), reports a change.
 	 *
-	 * @param string $api_key The API key.
+	 * @param string|array<string, string> $api_key The API key, or the keys by name (keys()).
 	 * @return ReporterResult|null
 	 */
-	public function test_connection( #[\SensitiveParameter] string $api_key ): ?ReporterResult {
+	public function test_connection( #[\SensitiveParameter] string|array $api_key ): ?ReporterResult {
 		return $this->run( static fn( InstallationReporter $r, ReporterState $s ) => $r->testConnection( $s, $api_key ) );
 	}
 
@@ -181,6 +248,17 @@ final class Reporting {
 	 */
 	public function report_check(): ?ReporterResult {
 		return $this->run( static fn( InstallationReporter $r, ReporterState $s ) => $r->reportCheck( $s ) );
+	}
+
+	/**
+	 * *Send installed plugins to Supertext*: sends the list now (event `extensions`), only
+	 * while reports are on.
+	 *
+	 * @param iterable<mixed> $extensions Entries ['name' => …, 'version' => …, 'active' => …, 'type' => …].
+	 * @return ReporterResult|null
+	 */
+	public function send_extensions( iterable $extensions ): ?ReporterResult {
+		return $this->run( static fn( InstallationReporter $r, ReporterState $s ) => $r->sendExtensions( $s, $extensions ) );
 	}
 
 	/**
@@ -197,12 +275,78 @@ final class Reporting {
 	}
 
 	/**
-	 * The latest stored key check, for the settings page.
+	 * The latest stored check of a key (default: the AI key), for the settings pages.
+	 * A state from before the named keys (one key) counts as the AI key's.
 	 *
+	 * @param string $name KEY_AI or KEY_ORDERS.
 	 * @return KeyCheck|null
 	 */
-	public function last_check(): ?KeyCheck {
-		return $this->state()->keyCheck;
+	public function last_check( string $name = self::KEY_AI ): ?KeyCheck {
+		$state = $this->state();
+		if ( null === $state->keyChecks ) {
+			return self::KEY_AI === $name ? $state->keyCheck : null;
+		}
+
+		return $state->keyChecks[ $name ] ?? null;
+	}
+
+	/**
+	 * The latest stored checks by name (in the order of keys()).
+	 *
+	 * @return array<string, KeyCheck>
+	 */
+	public function last_checks(): array {
+		$state = $this->state();
+		if ( null === $state->keyChecks ) {
+			return null !== $state->keyCheck ? array( self::KEY_AI => $state->keyCheck ) : array();
+		}
+
+		return $state->keyChecks;
+	}
+
+	/**
+	 * Checks the professional-orders credentials: an authenticated GET of the order types
+	 * (costs nothing). 2xx ok, 401/403 invalid, no answer or 5xx unreachable, else error.
+	 *
+	 * @param string $email   The account email.
+	 * @param string $api_key The Order API Key.
+	 * @return KeyCheck
+	 */
+	public function check_orders( string $email, #[\SensitiveParameter] string $api_key ): KeyCheck {
+		$now         = null !== $this->now ? ( $this->now )() : microtime( true );
+		$at          = KeyCheck::timestamp( $now );
+		$fingerprint = Protocol::apiKeyFingerprint( self::orders_key( $email, $api_key ) );
+		if ( '' === trim( $email ) || '' === trim( $api_key ) ) {
+			return new KeyCheck( KeyCheck::MISSING, $at, null, null, '' );
+		}
+		try {
+			$response = $this->transport->send(
+				new HttpRequest(
+					'GET',
+					$this->orders_base_url . 'api/v1/util/ordertype/' . $this->orders_service_id,
+					array(
+						'Authorization' => 'Basic ' . base64_encode( trim( $email ) . ':' . trim( $api_key ) ),
+						'Accept'        => 'application/json',
+						'User-Agent'    => self::PLUGIN_NAME . '/' . $this->plugin_version,
+					),
+					null,
+					(float) self::ORDERS_TIMEOUT
+				)
+			);
+		} catch ( TransportException $e ) {
+			return new KeyCheck( KeyCheck::UNREACHABLE, $at, null, null, $fingerprint );
+		} catch ( \Throwable $e ) {
+			return new KeyCheck( KeyCheck::ERROR, $at, null, null, $fingerprint );
+		}
+		$status = $response->status;
+		$result = match ( true ) {
+			$status >= 200 && $status < 300 => KeyCheck::OK,
+			401 === $status || 403 === $status => KeyCheck::INVALID,
+			$status >= 500 => KeyCheck::UNREACHABLE,
+			default => KeyCheck::ERROR,
+		};
+
+		return new KeyCheck( $result, $at, $status, null, $fingerprint );
 	}
 
 	/**
@@ -224,7 +368,13 @@ final class Reporting {
 			pluginVersion: $this->plugin_version,
 			systemName: self::SYSTEM_NAME,
 			keyChecker: new CallableKeyChecker(
-				static fn( #[\SensitiveParameter] string $key ) => ( new Client( $key, baseUrl: $base_url, userAgent: $agent, transport: $transport, now: $now ) )->checkApiKey(),
+				function ( #[\SensitiveParameter] string $key ) use ( $base_url, $agent, $transport, $now ) {
+					if ( str_starts_with( $key, self::ORDERS_PREFIX ) ) {
+						list( $email, $order_key ) = explode( "\0", substr( $key, strlen( self::ORDERS_PREFIX ) ), 2 ) + array( '', '' );
+						return $this->check_orders( $email, $order_key );
+					}
+					return ( new Client( $key, baseUrl: $base_url, userAgent: $agent, transport: $transport, now: $now ) )->checkApiKey();
+				},
 				array( Protocol::class, 'apiKeyFingerprint' )
 			),
 			systemVersion: $this->system_version,

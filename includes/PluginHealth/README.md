@@ -1,7 +1,7 @@
 # Supertext Plugin Health (bundled copy)
 
-PHP part of [Supertext Plugin Health](https://github.com/Supertext/Commando-Center-Supertext-Translation/tree/main/plugin-health)
-(MIT licence, see LICENSE), version 0.1.0, commit `2393242b47a58bdd70ecb54d2636a076c0ea3769`, namespace `Supertext\Polylang\PluginHealth`
+PHP part of [Supertext Plugin Health](https://github.com/supertext/Commando-Center-Supertext-Translation/tree/main/plugin-health)
+(MIT licence, see LICENSE), version 0.3.0, commit `330495796a4fd648fdb798f98971878aed71e256`, namespace `Supertext\Polylang\PluginHealth`
 instead of `Supertext\PluginHealth`.
 
 Don't edit these files: fix it in Commando-Center-Supertext-Translation/plugin-health, then run

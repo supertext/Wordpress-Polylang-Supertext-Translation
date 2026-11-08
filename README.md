@@ -202,13 +202,32 @@ from a live site with Polylang Pro.
 
 ## Commando Center: version reports, API key check, ping
 
-Protocol: [Commando-Center-Supertext-Translation](https://github.com/Supertext/Commando-Center-Supertext-Translation)
+Protocol: [Commando-Center-Supertext-Translation](https://github.com/supertext/Commando-Center-Supertext-Translation)
 → `docs/DEVELOPER.md` → *Report protocol*. [Supertext Plugin Health](#supertext-plugin-health)'s
 `InstallationReporter`, `reportsEnabled()` and `pingResponse()` implement it, with the SDK's
 `checkApiKey()` and `apiKeyFingerprint()` as its key checker and `Supertext::SDK_VERSION` as
 `sdk_version`; `includes/Reporting/Reporting.php` (no WordPress functions) loads the state, runs
 one reporter action and stores the new state, never throwing; `includes/Reporting/Commando.php`
 gives it what WordPress knows and wires the hooks.
+
+- **Two keys, by name** (Plugin Health ≥ 0.2, field `api_keys`): `AI translation` (Polylang's
+  Supertext service option `api_key`, checked with the SDK's `checkApiKey()`) and, once the
+  account email or the Order API Key is set, `Professional orders` (the email and the key from
+  `supertext_polylang_settings`, checked with an authenticated `GET api/v1/util/ordertype/<ServiceID>`
+  of the chosen environment, which costs nothing: 2xx `ok`, 401/403 `invalid`, no answer or 5xx
+  `unreachable`, else `error`; email or key missing: `missing` without a request). The names are
+  the dashboard's keys: never translate or rename `Reporting::KEY_AI` / `KEY_ORDERS`. Plugin Health
+  gets one key value per name; the orders value combines email and key
+  (`Reporting::orders_key()`), so a change of either is checked again; the checker recognizes it
+  by its prefix. Neither the keys nor the email are sent or stored, only their SHA-256 fingerprints.
+- **Installed plugins** (Plugin Health ≥ 0.3, event `extensions`): **Send installed plugins to
+  Supertext** in the status panel (admin-post action `supertext_polylang_send_extensions`) sends
+  `Commando::installed_extensions()`: every plugin (`get_plugins()`, `active` from
+  `is_plugin_active()`, network-wide included), must-use plugin and drop-in (type `mu-plugin`,
+  `drop-in`), and theme (`wp_get_themes()`, active = the current theme or its parent), with name,
+  version, active and type; never paths, settings or licence keys. Only by hand, only while
+  version reports are on; the result (*Sent: N plugins and themes.*, failed, or reporting off) is
+  shown once on the next page view.
 
 - **Setting:** `version_reports` in the option `supertext_polylang_settings` (*Send version
   information to Supertext*, on by default, on **Supertext → Settings**).
@@ -234,24 +253,31 @@ gives it what WordPress knows and wires the hooks.
     AI translation (`Client::translate_segments()`). Runs once per request on `shutdown`,
     after `fastcgi_finish_request()` where available. Never on front-end views.
   - `authenticationFailed`: an AI translation failed with `authentication_failure`
-    (HTTP 401/403); replaces `onRequest` for that request.
+    (HTTP 401/403; key `AI translation`), or an order request got 401/403
+    (`Human_Translation\Client`; key `Professional orders`); replaces `onRequest` for that request.
   - `testConnection`: **Test connection** in the status panel (admin-post action
-    `supertext_polylang_test_connection`; the result is shown once on the next page view).
+    `supertext_polylang_test_connection`; checks both keys, the results are shown once on the next
+    page view, one notice per key).
+  - `sendExtensions`: **Send installed plugins to Supertext** (see above).
 - **State:** Plugin Health's `ReporterState` JSON in the option `supertext_polylang_reporter`
-  (not autoloaded); the same JSON the Supertext SDK 0.1–0.2 reporter stored, so sites keep their
-  history (no new `installed` report). Unreadable state is treated as empty. The API key is never stored, sent or logged; only
+  (not autoloaded); it reads the JSON the Supertext SDK 0.1–0.2 reporter stored, so sites keep their
+  history (no new `installed` report); since 0.14.0 it also holds `keyChecks` and
+  `reportedKeyStatuses` (per key name). A stored single-key check counts as the AI key's. Unreadable state is treated as empty. The API key is never stored, sent or logged; only
   the SDK's fingerprint is kept. Errors are logged only with `WP_DEBUG`.
 - **Ping:** REST route `GET /wp-json/supertext/v1/ping` (`permission_callback`
   `__return_true`, no login or nonce) answers `pingResponse()`'s status, headers
   (`Cache-Control: no-store`) and body.
 - **Messages:** `Commando::message()` has the center's five texts, with the account and API
-  key links (new tab) for `invalid` and `missing` (bare URLs where Polylang shows plain text).
+  key links (new tab) for `invalid` and `missing` (bare URLs where Polylang shows plain text);
+  for `Professional orders`, `invalid` and `missing` have their own texts pointing to the Supertext
+  account settings (where the Order API Key is). The status panel shows one row per key
+  (`Commando::key_label()`); Polylang's settings show the AI key's.
 - **Tests:** `tests/unit/cases/ReportingTest.php` and `CommandoTest.php` use a fake transport
   and `SUPERTEXT_REPORT_URL` pointing at `127.0.0.1`, so they never reach the live center.
 
 ### Supertext Plugin Health
 
-[Supertext Plugin Health](https://github.com/Supertext/Commando-Center-Supertext-Translation/tree/main/plugin-health)
+[Supertext Plugin Health](https://github.com/supertext/Commando-Center-Supertext-Translation/tree/main/plugin-health)
 (in the Commando Center's repository, `plugin-health/`) is the dependency-free library every
 Supertext plugin uses for the version reports, the report of the API key check's result and the
 answer of the ping endpoint; the key check itself is the SDK's. The plugin ships its PHP part in
@@ -259,7 +285,7 @@ answer of the ping endpoint; the key check itself is the SDK's. The plugin ships
 `Supertext\PluginHealth`, loaded by the plugin's own autoloader and checked by PHPStan like
 `includes/Sdk/`); `COMMIT` and `VERSION` there name the revision. **Never edit
 `includes/PluginHealth/`**: fix it in Commando-Center-Supertext-Translation/plugin-health, then
-run `scripts/vendor-plugin-health.sh <tag>` (e.g. `plugin-health-v0.1.0`; default `main`;
+run `scripts/vendor-plugin-health.sh <tag>` (e.g. `plugin-health-v0.3.0`; default `main`;
 `PLUGIN_HEALTH_DIR=/path/to/clone` uses a local clone as it is).
 
 ## Interface languages

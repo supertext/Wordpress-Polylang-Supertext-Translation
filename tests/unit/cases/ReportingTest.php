@@ -21,6 +21,8 @@ class ReportingTest extends TestCase {
 	const REPORT_URL = 'http://127.0.0.1:9/report';
 	const API        = 'https://api.example.test/v1/';
 	const KEY        = 'secret-key-123';
+	const ORDERS     = 'https://orders.example.test/';
+	const ORDER_KEY  = 'order-secret-456';
 
 	/** @var array<int, HttpRequest> */
 	private $requests = array();
@@ -33,6 +35,12 @@ class ReportingTest extends TestCase {
 
 	/** @var string|null */
 	private $stored = null;
+
+	/** @var int */
+	private $orders_status = 200;
+
+	/** @var bool */
+	private $orders_down = false;
 
 	private function transport(): HttpTransport {
 		return new class( $this ) implements HttpTransport {
@@ -57,6 +65,12 @@ class ReportingTest extends TestCase {
 			}
 			return new HttpResponse( 202, '{"ok":true}', array() );
 		}
+		if ( str_starts_with( $request->url, self::ORDERS . 'api/v1/util/ordertype/' ) ) {
+			if ( $this->orders_down ) {
+				throw new TransportException( 'timeout' );
+			}
+			return new HttpResponse( $this->orders_status, '[]', array() );
+		}
 		if ( str_starts_with( $request->url, self::API . 'features' ) ) {
 			return new HttpResponse( $this->features_status, 401 === $this->features_status ? '{"error_code":"UNAUTHORIZED"}' : '[]', array() );
 		}
@@ -78,7 +92,14 @@ class ReportingTest extends TestCase {
 			},
 			report_url: self::REPORT_URL,
 			now: static fn() => 1791900000.0,
+			orders_base_url: self::ORDERS,
+			orders_service_id: 7,
 		);
+	}
+
+	/** @return array<string, string> */
+	private static function both_keys( string $ai = self::KEY, string $email = 'shop@example.ch', string $order_key = self::ORDER_KEY ): array {
+		return Reporting::keys( $ai, $email, $order_key );
 	}
 
 	/** @return array<int, array<string, mixed>> */
@@ -139,7 +160,7 @@ class ReportingTest extends TestCase {
 		$this->reporting()->after_settings_saved( self::KEY );
 		$this->assertSame( 'settings_saved', $this->reports()[0]['event'] );
 		$this->assertSame(
-			array( 'reportedVersions', 'reportedKeyStatus', 'lastFailureAt', 'keyCheck' ),
+			array( 'reportedVersions', 'reportedKeyStatus', 'lastFailureAt', 'keyCheck', 'keyChecks', 'reportedKeyStatuses' ),
 			array_keys( json_decode( (string) $this->stored, true ) ),
 			'same stored format'
 		);
@@ -239,5 +260,101 @@ class ReportingTest extends TestCase {
 		$this->assertTrue( Reporting::enabled( null ), 'on by default' );
 		$this->assertFalse( Reporting::enabled( false ) );
 		$this->assertFalse( Reporting::forced_by_environment() );
+	}
+
+	public function test_keys_report_professional_orders_only_once_either_credential_is_set(): void {
+		$this->assertSame( array( Reporting::KEY_AI ), array_keys( Reporting::keys( self::KEY, ' ', '' ) ) );
+		$this->assertSame( array( Reporting::KEY_AI, Reporting::KEY_ORDERS ), array_keys( Reporting::keys( self::KEY, 'shop@example.ch', '' ) ) );
+		$this->assertSame( '', Reporting::keys( self::KEY, 'shop@example.ch', '' )[ Reporting::KEY_ORDERS ], 'half the credentials: missing' );
+	}
+
+	public function test_both_keys_are_checked_and_reported_by_name_and_never_sent(): void {
+		$result = $this->reporting()->after_settings_saved( self::both_keys() );
+
+		$this->assertSame( KeyCheck::OK, $result->checks[ Reporting::KEY_AI ]->status );
+		$this->assertSame( KeyCheck::OK, $result->checks[ Reporting::KEY_ORDERS ]->status );
+		$report = $this->reports()[0];
+		$this->assertSame( array( 'AI translation', 'Professional orders' ), array_column( $report['api_keys'], 'name' ) );
+		$this->assertArrayNotHasKey( 'api_key_check', $report );
+
+		$orders = array_values( array_filter( $this->requests, static fn( $r ) => str_starts_with( $r->url, self::ORDERS ) ) );
+		$this->assertCount( 1, $orders );
+		$this->assertSame( 'GET', $orders[0]->method );
+		$this->assertSame( self::ORDERS . 'api/v1/util/ordertype/7', $orders[0]->url );
+		$this->assertSame( 'Basic ' . base64_encode( 'shop@example.ch:' . self::ORDER_KEY ), $orders[0]->headers['Authorization'] );
+		foreach ( $this->requests as $request ) {
+			if ( self::REPORT_URL === $request->url ) {
+				$this->assertStringNotContainsString( self::ORDER_KEY, (string) $request->body );
+				$this->assertStringNotContainsString( 'shop@example.ch', (string) $request->body );
+			}
+		}
+		$this->assertStringNotContainsString( self::ORDER_KEY, (string) $this->stored );
+		$this->assertStringNotContainsString( 'shop@example.ch', (string) $this->stored );
+		$this->assertSame( KeyCheck::OK, $this->reporting()->last_check( Reporting::KEY_ORDERS )->status );
+	}
+
+	public function test_orders_check_results(): void {
+		$this->orders_status = 401;
+		$this->assertSame( KeyCheck::INVALID, $this->reporting()->check_orders( 'shop@example.ch', self::ORDER_KEY )->status );
+		$this->orders_status = 503;
+		$this->assertSame( KeyCheck::UNREACHABLE, $this->reporting()->check_orders( 'shop@example.ch', self::ORDER_KEY )->status );
+		$this->orders_status = 404;
+		$check = $this->reporting()->check_orders( 'shop@example.ch', self::ORDER_KEY );
+		$this->assertSame( KeyCheck::ERROR, $check->status );
+		$this->assertSame( 404, $check->httpStatus );
+		$this->orders_down = true;
+		$this->assertSame( KeyCheck::UNREACHABLE, $this->reporting()->check_orders( 'shop@example.ch', self::ORDER_KEY )->status );
+		$this->requests = array();
+		$this->assertSame( KeyCheck::MISSING, $this->reporting()->check_orders( '', self::ORDER_KEY )->status );
+		$this->assertSame( array(), $this->requests, 'missing credentials: no request' );
+	}
+
+	public function test_a_changed_order_key_is_checked_again_and_a_rejected_order_marks_only_that_key(): void {
+		$this->reporting()->after_settings_saved( self::both_keys() );
+		$this->requests = array();
+		$this->assertNull( $this->reporting()->on_request( self::both_keys() )->event );
+		$this->assertSame( array(), $this->requests );
+
+		$this->orders_status = 401;
+		$result              = $this->reporting()->on_request( self::both_keys( self::KEY, 'shop@example.ch', 'new-key' ) );
+		$this->assertSame( 'api_key_check', $result->event );
+		$this->assertSame( KeyCheck::INVALID, $result->checks[ Reporting::KEY_ORDERS ]->status );
+		$this->assertSame( KeyCheck::OK, $result->checks[ Reporting::KEY_AI ]->status );
+
+		$this->orders_status = 200;
+		$this->reporting()->test_connection( self::both_keys() );
+		$result = $this->reporting()->authentication_failed( self::both_keys(), 403, Reporting::KEY_ORDERS );
+		$this->assertSame( KeyCheck::INVALID, $result->checks[ Reporting::KEY_ORDERS ]->status );
+		$this->assertSame( KeyCheck::OK, $result->checks[ Reporting::KEY_AI ]->status );
+	}
+
+	public function test_a_single_key_state_counts_as_the_ai_key(): void {
+		$this->reporting()->after_settings_saved( self::KEY );
+		$this->assertSame( array( Reporting::KEY_AI ), array_keys( $this->reporting()->last_checks() ) );
+		$this->assertNull( $this->reporting()->last_check( Reporting::KEY_ORDERS ) );
+
+		$result = $this->reporting()->on_request( self::both_keys() );
+		$this->assertSame( 'api_key_check', $result->event, 'switching to named keys is reported' );
+	}
+
+	public function test_send_extensions(): void {
+		$this->reporting()->after_settings_saved( self::both_keys() );
+		$result = $this->reporting()->send_extensions(
+			array(
+				array( 'name' => 'Polylang Pro', 'version' => '3.7.2', 'active' => true, 'type' => 'plugin' ),
+				array( 'name' => 'Twenty Twenty-Five', 'version' => '1.2', 'active' => false, 'type' => 'theme' ),
+			)
+		);
+		$this->assertTrue( $result->sent );
+		$this->assertSame( 'extensions', $result->event );
+		$report = $this->reports()[1];
+		$this->assertSame( 'extensions', $report['event'] );
+		$this->assertSame( 'Polylang Pro', $report['extensions'][0]['name'] );
+		$this->assertFalse( $report['extensions'][1]['active'] );
+		$this->assertArrayHasKey( 'api_keys', $report );
+
+		$this->requests = array();
+		$this->assertFalse( $this->reporting( false )->send_extensions( array( array( 'name' => 'X' ) ) )->sent );
+		$this->assertSame( array(), $this->reports(), 'reporting off: nothing is sent' );
 	}
 }

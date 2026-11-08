@@ -210,12 +210,14 @@ another address.
 > Supertext when you save these settings and after an update, so Supertext support can see
 > which version you run. No content, no API key and no personal data are sent.
 
-Exactly what is sent (as JSON to the Supertext Commando Center): the event (`installed`,
-`settings_saved`, `upgraded`, `api_key_check`), the site URL (`home_url()`), the plugin name
+Exactly what is sent (as JSON to Supertext Plugin Health): the event (`installed`,
+`settings_saved`, `upgraded`, `api_key_check`, `extensions`), the site URL (`home_url()`), the plugin name
 (`supertext-wordpress-polylang`) and version, the WordPress version, the PHP version, the
-version of the bundled Supertext SDK, whether an API key is set, the result of the latest
-API key check (`ok`, `invalid`, `missing`, `unreachable` or `error`, when it ran, Supertext's
-HTTP status and error code) and the address of the plugin's ping endpoint (below). Reports
+version of the bundled Supertext SDK, for each of the two keys (*AI translation* and, once you
+entered the account email or the Order API Key, *Professional orders*) whether it is set and the
+result of its latest check (`ok`, `invalid`, `missing`, `unreachable` or `error`, when it ran,
+Supertext's HTTP status and error code), and the address of the plugin's ping endpoint (below).
+Never the keys or the account email. Reports
 are sent when you save the Supertext or Polylang settings, when the plugin, WordPress or PHP
 version changed (noticed on the Supertext pages, Polylang's settings page or a translation),
 and when the key check result changes. A failed report is tried again after an hour at the
@@ -233,12 +235,30 @@ set. With version information off, nothing is sent and the ping answers 404.
 `Cache-Control: no-store`. Exclude it from page caches and firewalls that block the REST API
 if Supertext should see the site as reachable.
 
+#### Send installed plugins to Supertext
+
+The status panel of **Supertext → Settings** has a button **Send installed plugins to
+Supertext**:
+
+> Sends Supertext the list of the plugins and themes installed on this site (name, version,
+> active or not), so Supertext support can help with conflicts. Nothing else is sent.
+
+It sends every plugin (active or not, must-use plugins and drop-ins included) and theme with its
+name, version, whether it is active, and whether it is a plugin or a theme. Nothing is sent
+automatically: only when an administrator presses the button, for example when Supertext
+support asks for it. With version information off, the button sends nothing and says so
+(*Turn on “Send version information to Supertext” to send the list.*).
+
 #### API key check
 
-The API key is checked automatically when you save the settings, and again when the key
-changed. The result is kept and shown in the status panel of **Supertext → Settings** (with
-the time of the check) and in the Supertext section of Polylang's settings. **Test
-connection** in the status panel runs the check again. The check runs whether or not version
+Both keys are checked automatically when you save the settings, and again when one of them
+changed: the **AI translation** API key (Polylang's settings) and, once you entered either, the
+**account email and Order API Key** for professional translation (**Supertext → Settings**; checked
+by reading the translation types, which costs nothing). An AI translation or an order that
+Supertext rejects marks its key as rejected. The results are kept and shown in the status panel
+of **Supertext → Settings** (one row per key, with the time of the check); the AI key's also in
+the Supertext section of Polylang's settings. **Test connection** in the status panel checks both
+again. The check runs whether or not version
 information is on; only the report depends on the setting.
 
 | Result | Message |
@@ -248,6 +268,13 @@ information is on; only the report depends on the setting.
 | missing | No API key is set yet. No Supertext account yet? Create one at supertext.com. Generate your API key at supertext.com → Integrations → API (requires the Admin role). |
 | unreachable | The API key couldn't be checked because Supertext can't be reached. The settings are saved; check again later. |
 | error | The API key couldn't be checked: Supertext answered with an error (HTTP status). The settings are saved; check again later. |
+
+For the account email and Order API Key, two results have their own message:
+
+| Result | Message |
+| --- | --- |
+| invalid | Supertext rejected the account email or the Order API Key. Check both; you find the Order API Key in your Supertext account settings. No Supertext account yet? Create one at supertext.com. |
+| missing | Enter both the account email and the Order API Key for professional translations; you find the Order API Key in your Supertext account settings. No Supertext account yet? Create one at supertext.com. |
 
 ### Human (professional) translation
 
@@ -295,9 +322,9 @@ offers. Each option's short description shows as a tooltip.
 
 The **status panel** at the top of **Supertext → Settings** shows, at a glance, whether
 Polylang Pro is active, whether the patch is applied, whether the Supertext service is
-configured and active, the latest **API key check** (with **Test connection**), each
-Polylang language with its Supertext language (or **Not mapped**), and whether version
-information is sent. (It's the same page shown above.)
+configured and active, the latest **API key check** of each key (with **Test connection**), each
+Polylang language with its Supertext language (or **Not mapped**), whether version
+information is sent, and the **Send installed plugins to Supertext** button. (It's the same page shown above.)
 
 ---
 

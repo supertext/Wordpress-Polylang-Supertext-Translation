@@ -30,7 +30,12 @@ use WP_REST_Response;
  *   where available). Never on front-end views.
  * - authentication_failed(): an AI translation was rejected with 401/403.
  * - test_connection(): the *Test connection* button on the Supertext page.
+ * - send_extensions(): the *Send installed plugins to Supertext* button there.
  * - The public ping: GET /wp-json/supertext/v1/ping.
+ *
+ * Two keys are reported by name (Reporting::keys()): the AI translation key
+ * (Polylang's Supertext service options) and, once either is set, the account
+ * email and Order API Key of professional orders (the Supertext settings page).
  *
  * Nothing here throws into a request (Reporting catches everything).
  *
@@ -65,6 +70,20 @@ class Commando {
 	 * @var string
 	 */
 	const TEST_TRANSIENT = 'supertext_polylang_key_check';
+
+	/**
+	 * admin-post action of *Send installed plugins to Supertext*.
+	 *
+	 * @var string
+	 */
+	const EXTENSIONS_ACTION = 'supertext_polylang_send_extensions';
+
+	/**
+	 * Transient (per user) holding that button's result for the next page view.
+	 *
+	 * @var string
+	 */
+	const EXTENSIONS_TRANSIENT = 'supertext_polylang_extensions_sent';
 
 	/**
 	 * Tests only: the transport for the check and the report.
@@ -103,6 +122,7 @@ class Commando {
 		add_action( 'rest_api_init', array( self::class, 'register_ping' ) );
 		add_action( 'admin_init', array( self::class, 'maybe_on_request' ) );
 		add_action( 'admin_post_' . self::TEST_ACTION, array( self::class, 'handle_test_connection' ) );
+		add_action( 'admin_post_' . self::EXTENSIONS_ACTION, array( self::class, 'handle_send_extensions' ) );
 		add_action( 'update_option_polylang', array( self::class, 'polylang_options_updated' ), 10, 2 );
 		add_filter( 'pre_update_option_' . Settings::OPTION, array( self::class, 'own_settings_saved' ), 10, 2 );
 	}
@@ -152,11 +172,12 @@ class Commando {
 	/**
 	 * The glue with WordPress' values.
 	 *
-	 * @param string|null $endpoint The API base URL to check against (a save in progress); null: the stored one.
-	 * @param bool|null   $enabled  The version reports setting (a save in progress); null: the stored one.
+	 * @param string|null $endpoint        The API base URL to check against (a save in progress); null: the stored one.
+	 * @param bool|null   $enabled         The version reports setting (a save in progress); null: the stored one.
+	 * @param string|null $orders_base_url The order API's base URL (a save in progress); null: the stored environment's.
 	 * @return Reporting
 	 */
-	public static function reporting( ?string $endpoint = null, ?bool $enabled = null ): Reporting {
+	public static function reporting( ?string $endpoint = null, ?bool $enabled = null, ?string $orders_base_url = null ): Reporting {
 		$site_url = self::site_url();
 		$service  = self::service_options();
 		$endpoint = $endpoint ?? (string) ( $service['endpoint'] ?? '' );
@@ -179,6 +200,8 @@ class Commando {
 			save: static function ( string $json ): void {
 				update_option( self::STATE_OPTION, $json, false );
 			},
+			orders_base_url: $orders_base_url ?? Settings::base_url(),
+			orders_service_id: Settings::service_id(),
 		);
 	}
 
@@ -192,21 +215,51 @@ class Commando {
 	}
 
 	/**
-	 * Settings saved: checks the key and reports `installed` or `settings_saved`.
+	 * The keys by name (Reporting::keys()): the AI key and the professional-orders credentials.
+	 *
+	 * @param string|null               $ai_key The AI key being saved; null: the stored one.
+	 * @param array<string, mixed>|null $own    The Supertext settings being saved; null: the stored ones.
+	 * @return array<string, string>
+	 */
+	public static function keys( ?string $ai_key = null, ?array $own = null ): array {
+		return Reporting::keys(
+			$ai_key ?? self::api_key(),
+			null !== $own ? (string) ( $own['human_email'] ?? '' ) : Settings::email(),
+			null !== $own ? (string) ( $own['human_api_key'] ?? '' ) : Settings::api_key()
+		);
+	}
+
+	/**
+	 * Settings saved: checks the AI key and reports `installed` or `settings_saved`.
 	 * Runs at most once per request.
 	 *
-	 * @param string|null $api_key  The key being saved; null: the stored one.
+	 * @param string|null $api_key  The AI key being saved; null: the stored one.
 	 * @param string|null $endpoint The API base URL being saved; null: the stored one.
 	 * @param bool|null   $enabled  The version reports setting being saved; null: the stored one.
-	 * @return KeyCheck|null The check (null if it already ran in this request or the reporter failed).
+	 * @return KeyCheck|null The AI key's check (null if it already ran in this request or the reporter failed).
 	 */
 	public static function after_settings_saved( ?string $api_key = null, ?string $endpoint = null, ?bool $enabled = null ): ?KeyCheck {
+		$result = self::save_and_report( self::keys( $api_key ), $endpoint, $enabled );
+
+		return null !== $result ? self::check_of( $result, Reporting::KEY_AI ) : null;
+	}
+
+	/**
+	 * Settings saved: checks every key and reports, at most once per request.
+	 *
+	 * @param array<string, string> $keys            The keys by name.
+	 * @param string|null           $endpoint        The API base URL being saved; null: the stored one.
+	 * @param bool|null             $enabled         The version reports setting being saved; null: the stored one.
+	 * @param string|null           $orders_base_url The order API's base URL being saved; null: the stored one.
+	 * @return ReporterResult|null Null if it already ran in this request or the reporter failed.
+	 */
+	private static function save_and_report( array $keys, ?string $endpoint = null, ?bool $enabled = null, ?string $orders_base_url = null ): ?ReporterResult {
 		if ( self::$saved ) {
 			return null;
 		}
 		self::$saved = true;
 		try {
-			$result = self::reporting( $endpoint, $enabled )->after_settings_saved( $api_key ?? self::api_key() );
+			$result = self::reporting( $endpoint, $enabled, $orders_base_url )->after_settings_saved( $keys );
 		} catch ( \Throwable $e ) {
 			self::debug( $e->getMessage() );
 			return null;
@@ -214,7 +267,18 @@ class Commando {
 		// The save itself replaces the request's report.
 		self::$deferred = null;
 
-		return $result instanceof ReporterResult ? $result->check : null;
+		return $result instanceof ReporterResult ? $result : null;
+	}
+
+	/**
+	 * One key's check in a result (a result of one key: its check).
+	 *
+	 * @param ReporterResult $result The result.
+	 * @param string         $name   The key's name.
+	 * @return KeyCheck|null
+	 */
+	private static function check_of( ReporterResult $result, string $name ): ?KeyCheck {
+		return null !== $result->checks ? ( $result->checks[ $name ] ?? null ) : $result->check;
 	}
 
 	/**
@@ -224,48 +288,213 @@ class Commando {
 	 * @return void
 	 */
 	public static function on_request(): void {
-		self::defer( static fn() => self::reporting()->on_request( self::api_key() ), false );
+		self::defer( static fn() => self::reporting()->on_request( self::keys() ), false );
 	}
 
 	/**
-	 * An AI translation was rejected with 401/403.
+	 * A translation or an order was rejected with 401/403.
 	 *
-	 * @param int $http_status 401 or 403.
+	 * @param int    $http_status 401 or 403.
+	 * @param string $key_name    Reporting::KEY_AI (an AI translation) or Reporting::KEY_ORDERS (an order request).
 	 * @return void
 	 */
-	public static function authentication_failed( int $http_status = 401 ): void {
+	public static function authentication_failed( int $http_status = 401, string $key_name = Reporting::KEY_AI ): void {
 		$status = in_array( $http_status, array( 401, 403 ), true ) ? $http_status : 401;
-		self::defer( static fn() => self::reporting()->authentication_failed( self::api_key(), $status ), true );
+		self::defer( static fn() => self::reporting()->authentication_failed( self::keys(), $status, $key_name ), true );
 	}
 
 	/**
-	 * *Test connection*: the key check (and a report if its status changed).
+	 * *Test connection*: checks every key (and reports if a status changed).
 	 *
-	 * @return KeyCheck
+	 * @return array<string, KeyCheck> The checks by name.
 	 */
-	public static function test_connection(): KeyCheck {
+	public static function test_connection(): array {
 		try {
-			$result = self::reporting()->test_connection( self::api_key() );
+			$result = self::reporting()->test_connection( self::keys() );
 		} catch ( \Throwable $e ) {
 			$result = null;
 		}
+		if ( $result instanceof ReporterResult && null !== $result->checks ) {
+			return $result->checks;
+		}
 
-		return $result instanceof ReporterResult && null !== $result->check
-			? $result->check
-			: new KeyCheck( KeyCheck::ERROR, KeyCheck::timestamp( microtime( true ) ) );
+		return array( Reporting::KEY_AI => new KeyCheck( KeyCheck::ERROR, KeyCheck::timestamp( microtime( true ) ) ) );
 	}
 
 	/**
-	 * The latest stored key check.
+	 * The latest stored check of a key (default: the AI key).
 	 *
+	 * @param string $name Reporting::KEY_AI or Reporting::KEY_ORDERS.
 	 * @return KeyCheck|null
 	 */
-	public static function last_check(): ?KeyCheck {
+	public static function last_check( string $name = Reporting::KEY_AI ): ?KeyCheck {
 		try {
-			return self::reporting()->last_check();
+			return self::reporting()->last_check( $name );
 		} catch ( \Throwable $e ) {
 			return null;
 		}
+	}
+
+	/**
+	 * The latest stored checks by name.
+	 *
+	 * @return array<string, KeyCheck>
+	 */
+	public static function last_checks(): array {
+		try {
+			return self::reporting()->last_checks();
+		} catch ( \Throwable $e ) {
+			return array();
+		}
+	}
+
+	/**
+	 * A key's name as the interface shows it (the reported names stay English).
+	 *
+	 * @param string $name Reporting::KEY_AI or Reporting::KEY_ORDERS.
+	 * @return string
+	 */
+	public static function key_label( string $name ): string {
+		return Reporting::KEY_ORDERS === $name
+			? __( 'Professional translation (account email and Order API Key)', 'supertext-polylang' )
+			: __( 'AI translation (API key)', 'supertext-polylang' );
+	}
+
+	/**
+	 * The plugins (also must-use plugins and drop-ins) and themes installed on this site,
+	 * for *Send installed plugins to Supertext*: name, version, active or not, type.
+	 * Nothing else (no paths, settings or licence keys).
+	 *
+	 * @return array<int, array{name: string, version: string, active: bool, type: string}>
+	 */
+	public static function installed_extensions(): array {
+		if ( ! function_exists( 'get_plugins' ) && defined( 'ABSPATH' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/plugin.php';
+		}
+		$list = array();
+		$add  = static function ( string $type, array $plugins, ?callable $active ) use ( &$list ): void {
+			foreach ( $plugins as $file => $data ) {
+				$name   = trim( (string) ( $data['Name'] ?? '' ) );
+				$list[] = array(
+					'name'    => '' !== $name ? $name : (string) $file,
+					'version' => (string) ( $data['Version'] ?? '' ),
+					'active'  => null === $active ? true : (bool) $active( (string) $file ),
+					'type'    => $type,
+				);
+			}
+		};
+		if ( function_exists( 'get_plugins' ) ) {
+			$add( 'plugin', get_plugins(), 'is_plugin_active' );
+		}
+		if ( function_exists( 'get_mu_plugins' ) ) {
+			$add( 'mu-plugin', get_mu_plugins(), null );
+		}
+		if ( function_exists( 'get_dropins' ) ) {
+			$add( 'drop-in', get_dropins(), null );
+		}
+		if ( function_exists( 'wp_get_themes' ) ) {
+			$active = array( (string) get_stylesheet(), (string) get_template() );
+			foreach ( wp_get_themes() as $slug => $theme ) {
+				$list[] = array(
+					'name'    => (string) $theme->get( 'Name' ),
+					'version' => (string) $theme->get( 'Version' ),
+					'active'  => in_array( (string) $slug, $active, true ),
+					'type'    => 'theme',
+				);
+			}
+		}
+
+		return $list;
+	}
+
+	/**
+	 * *Send installed plugins to Supertext*: sends the list now.
+	 *
+	 * @return array{status: string, count: int} status: sent, failed or off.
+	 */
+	public static function send_extensions(): array {
+		if ( ! self::enabled() || null === self::site_url() ) {
+			return array( 'status' => 'off', 'count' => 0 );
+		}
+		try {
+			$list   = self::installed_extensions();
+			$result = self::reporting()->send_extensions( $list );
+			$count  = count( \Supertext\Polylang\PluginHealth\InstallationReporter::normalizeExtensions( $list ) );
+		} catch ( \Throwable $e ) {
+			self::debug( $e->getMessage() );
+			$result = null;
+			$count  = 0;
+		}
+
+		return array(
+			'status' => $result instanceof ReporterResult && $result->sent ? 'sent' : 'failed',
+			'count'  => $count,
+		);
+	}
+
+	/**
+	 * *Send installed plugins to Supertext* (admin-post): sends, keeps the result for the next page view.
+	 *
+	 * @return void
+	 */
+	public static function handle_send_extensions(): void {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You are not allowed to do this.', 'supertext-polylang' ) );
+		}
+		check_admin_referer( self::EXTENSIONS_ACTION );
+
+		set_transient( self::EXTENSIONS_TRANSIENT . '_' . get_current_user_id(), self::send_extensions(), 60 );
+
+		wp_safe_redirect( admin_url( 'admin.php?page=supertext-polylang' ) );
+		exit;
+	}
+
+	/**
+	 * The notice for *Send installed plugins to Supertext*'s result kept for this user, once.
+	 *
+	 * @return array{type: string, text: string}|null
+	 */
+	public static function take_extensions_result(): ?array {
+		$key   = self::EXTENSIONS_TRANSIENT . '_' . get_current_user_id();
+		$value = get_transient( $key );
+		if ( ! is_array( $value ) ) {
+			return null;
+		}
+		delete_transient( $key );
+
+		return self::extensions_message( (string) ( $value['status'] ?? '' ), (int) ( $value['count'] ?? 0 ) );
+	}
+
+	/**
+	 * The notice for a result of *Send installed plugins to Supertext*.
+	 *
+	 * @param string $status sent, failed or off.
+	 * @param int    $count  How many plugins and themes were sent.
+	 * @return array{type: string, text: string}
+	 */
+	public static function extensions_message( string $status, int $count ): array {
+		if ( 'sent' === $status ) {
+			return array(
+				'type' => 'success',
+				/* translators: %d: how many plugins and themes were sent. */
+				'text' => sprintf( __( 'Sent: %d plugins and themes.', 'supertext-polylang' ), $count ),
+			);
+		}
+		if ( 'off' === $status ) {
+			return array(
+				'type' => 'warning',
+				'text' => sprintf(
+					/* translators: %s: the name of the setting "Send version information to Supertext". */
+					__( 'Turn on “%s” to send the list.', 'supertext-polylang' ),
+					__( 'Send version information to Supertext', 'supertext-polylang' )
+				),
+			);
+		}
+
+		return array(
+			'type' => 'error',
+			'text' => __( 'The list couldn\'t be sent. Try again later.', 'supertext-polylang' ),
+		);
 	}
 
 	/**
@@ -324,10 +553,14 @@ class Commando {
 			return $value;
 		}
 		$enabled = is_array( $value ) && array_key_exists( 'version_reports', $value ) ? (bool) $value['version_reports'] : null;
-		$check   = self::after_settings_saved( null, null, $enabled );
-		if ( null !== $check && function_exists( 'add_settings_error' ) ) {
-			$message = self::message( $check, true );
-			add_settings_error( Settings::GROUP, 'supertext_key_check', $message['text'], $message['type'] );
+		$env     = is_array( $value ) ? (string) ( $value['environment'] ?? '' ) : '';
+		$base    = Settings::ENVIRONMENTS[ $env ] ?? null;
+		$result  = self::save_and_report( self::keys( null, is_array( $value ) ? $value : null ), null, $enabled, $base );
+		if ( null !== $result && function_exists( 'add_settings_error' ) ) {
+			foreach ( self::checks_of( $result ) as $name => $check ) {
+				$message = self::message( $check, true, $name );
+				add_settings_error( Settings::GROUP, 'supertext_key_check_' . sanitize_key( $name ), self::key_label( $name ) . ': ' . $message['text'], $message['type'] );
+			}
 		}
 
 		return $value;
@@ -344,27 +577,44 @@ class Commando {
 		}
 		check_admin_referer( self::TEST_ACTION );
 
-		$check = self::test_connection();
-		set_transient( self::TEST_TRANSIENT . '_' . get_current_user_id(), $check->toArray(), 60 );
+		set_transient( self::TEST_TRANSIENT . '_' . get_current_user_id(), array_map( static fn( KeyCheck $c ) => $c->toArray(), self::test_connection() ), 60 );
 
 		wp_safe_redirect( admin_url( 'admin.php?page=supertext-polylang' ) );
 		exit;
 	}
 
 	/**
-	 * The *Test connection* result kept for this user, once.
+	 * The *Test connection* result kept for this user, once: the checks by name.
 	 *
-	 * @return KeyCheck|null
+	 * @return array<string, KeyCheck>|null
 	 */
-	public static function take_test_result(): ?KeyCheck {
+	public static function take_test_result(): ?array {
 		$key   = self::TEST_TRANSIENT . '_' . get_current_user_id();
 		$value = get_transient( $key );
-		if ( false === $value ) {
+		if ( ! is_array( $value ) ) {
 			return null;
 		}
 		delete_transient( $key );
+		$checks = array();
+		foreach ( $value as $name => $check ) {
+			$checks[ (string) $name ] = KeyCheck::from( $check );
+		}
 
-		return KeyCheck::from( $value );
+		return $checks;
+	}
+
+	/**
+	 * The checks of a result by name (a result of one key: the AI key's).
+	 *
+	 * @param ReporterResult $result The result.
+	 * @return array<string, KeyCheck>
+	 */
+	private static function checks_of( ReporterResult $result ): array {
+		if ( null !== $result->checks ) {
+			return $result->checks;
+		}
+
+		return null !== $result->check ? array( Reporting::KEY_AI => $result->check ) : array();
 	}
 
 	/**
@@ -406,10 +656,11 @@ class Commando {
 	 * The message for a key check (the Commando Center's five texts).
 	 *
 	 * @param KeyCheck $check The check.
-	 * @param bool        $html  Links as `<a>` (new tab), else bare URLs in brackets.
+	 * @param bool     $html  Links as `<a>` (new tab), else bare URLs in brackets.
+	 * @param string   $key   Which key: Reporting::KEY_AI (default) or Reporting::KEY_ORDERS (own texts for rejected and missing).
 	 * @return array{type: string, text: string} `type`: success, error or warning (WordPress notice types).
 	 */
-	public static function message( KeyCheck $check, bool $html ): array {
+	public static function message( KeyCheck $check, bool $html, string $key = Reporting::KEY_AI ): array {
 		$account = 'https://www.supertext.com/person/en/account/signin';
 		$api     = 'https://www.supertext.com/en/integrations/api';
 		$link    = static fn( string $url, string $text ): string => $html
@@ -417,6 +668,27 @@ class Commando {
 			: $text . ' (' . $url . ')';
 		$account_link = $link( $account, 'supertext.com' );
 		$api_link     = $link( $api, 'supertext.com → Integrations → API' );
+
+		if ( Reporting::KEY_ORDERS === $key && in_array( $check->status, array( KeyCheck::INVALID, KeyCheck::MISSING ), true ) ) {
+			$settings_link = $link( Settings::base_url() . 'services/customer/accountsettings', __( 'Supertext account settings', 'supertext-polylang' ) );
+
+			return array(
+				'type' => 'error',
+				'text' => KeyCheck::INVALID === $check->status
+					? sprintf(
+						/* translators: 1: "Supertext account settings" (a link), 2: "supertext.com" (a link to create an account). */
+						__( 'Supertext rejected the account email or the Order API Key. Check both; you find the Order API Key in your %1$s. No Supertext account yet? Create one at %2$s.', 'supertext-polylang' ),
+						$settings_link,
+						$account_link
+					)
+					: sprintf(
+						/* translators: 1: "Supertext account settings" (a link), 2: "supertext.com" (a link to create an account). */
+						__( 'Enter both the account email and the Order API Key for professional translations; you find the Order API Key in your %1$s. No Supertext account yet? Create one at %2$s.', 'supertext-polylang' ),
+						$settings_link,
+						$account_link
+					),
+			);
+		}
 
 		switch ( $check->status ) {
 			case KeyCheck::OK:

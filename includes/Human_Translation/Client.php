@@ -324,6 +324,10 @@ class Client {
 		$code = (int) wp_remote_retrieve_response_code( $response );
 		$resp_body = (string) wp_remote_retrieve_body( $response );
 
+		if ( 401 === $code || 403 === $code ) {
+			// Tell the Commando Center the credentials were rejected (once, when the status changes).
+			\Supertext\Polylang\Reporting\Commando::authentication_failed( $code, \Supertext\Polylang\Reporting\Reporting::KEY_ORDERS );
+		}
 		if ( $code < 200 || $code >= 300 ) {
 			$this->debug_log( sprintf( '%s %s -> HTTP %d | %s', $method, $url, $code, substr( $resp_body, 0, 1000 ) ) );
 			$detail = wp_strip_all_tags( trim( $resp_body ) );

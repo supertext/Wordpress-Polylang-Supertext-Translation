@@ -1,7 +1,7 @@
 <?php
 /**
  * Demo setup, run with `wp eval-file` on every container start (idempotent):
- * Polylang languages, the demo accounts, the Supertext settings from the variables,
+ * Polylang languages, the demo accounts (created once, never changed), the Supertext settings from the variables,
  * and a few English pages and posts to translate.
  *
  * @package Supertext\Polylang
@@ -67,41 +67,39 @@ if ( function_exists( 'PLL' ) && PLL() && isset( PLL()->model ) ) {
 }
 
 // ---------------------------------------------------------------------------
-// Accounts from the variables (passwords are reset on every start, so changing a
-// variable and redeploying is all it takes).
+// Accounts from the variables, created once. Existing accounts are never changed
+// (no password resets from variables); the log names the variable, never the password.
 // ---------------------------------------------------------------------------
 /**
- * Creates or updates a demo user.
+ * Creates a demo user if no account with that e-mail exists yet.
  *
- * @param string $login    Login name.
- * @param string $email    E-mail.
- * @param string $password Password.
+ * @param string $login    Preferred login name (the e-mail if it is taken).
+ * @param string $prefix   Variable prefix, e.g. DEMO_ADMIN.
  * @param string $role     Role.
  */
-function supertext_demo_user( string $login, string $email, string $password, string $role ): void {
+function supertext_demo_user( string $login, string $prefix, string $role ): void {
+	$email    = (string) getenv( $prefix . '_EMAIL' );
+	$password = (string) getenv( $prefix . '_PASSWORD' );
 	if ( '' === $email || '' === $password ) {
 		return;
 	}
-	$user = get_user_by( 'email', $email ) ?: get_user_by( 'login', $login );
-	if ( $user ) {
-		wp_set_password( $password, $user->ID );
-		wp_update_user( array( 'ID' => $user->ID, 'user_email' => $email, 'role' => $role ) );
-		supertext_demo_log( "Updated $role account $email" );
+	if ( get_user_by( 'email', $email ) ) {
+		supertext_demo_log( "{$prefix}_EMAIL: account exists, left unchanged" );
 		return;
 	}
 	$id = wp_insert_user(
 		array(
-			'user_login' => $login,
+			'user_login' => username_exists( $login ) ? $email : $login,
 			'user_email' => $email,
 			'user_pass'  => $password,
 			'role'       => $role,
 		)
 	);
-	supertext_demo_log( is_wp_error( $id ) ? "Could not create $email: " . $id->get_error_message() : "Created $role account $email" );
+	supertext_demo_log( is_wp_error( $id ) ? "{$prefix}_EMAIL: could not create the account: " . $id->get_error_message() : "{$prefix}_EMAIL: created the $role account" );
 }
 
-supertext_demo_user( 'admin', (string) getenv( 'DEMO_ADMIN_EMAIL' ), (string) getenv( 'DEMO_ADMIN_PASSWORD' ), 'administrator' );
-supertext_demo_user( 'editor', (string) getenv( 'DEMO_EDITOR_EMAIL' ), (string) getenv( 'DEMO_EDITOR_PASSWORD' ), 'editor' );
+supertext_demo_user( 'admin', 'DEMO_ADMIN', 'administrator' );
+supertext_demo_user( 'editor', 'DEMO_EDITOR', 'editor' );
 
 // ---------------------------------------------------------------------------
 // Supertext settings: seeded from the variables only while still empty, so changes

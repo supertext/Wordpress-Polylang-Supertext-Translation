@@ -59,8 +59,9 @@ SITE_URL="${DEMO_SITE_URL:-}"
 [ -z "$SITE_URL" ] && SITE_URL="http://localhost:${PORT:-8080}"
 
 if ! $WP core is-installed 2>/dev/null; then
+    # The admin is created here from DEMO_ADMIN_* (setup.php then leaves it unchanged).
     $WP core install --url="$SITE_URL" --title="Supertext Demo (WordPress + Polylang)" \
-        --admin_user=admin --admin_email="$DEMO_ADMIN_EMAIL" --admin_password="$DEMO_ADMIN_PASSWORD" --skip-email
+        --admin_user=admin --admin_email="$DEMO_ADMIN_EMAIL" --admin_password="$DEMO_ADMIN_PASSWORD" --skip-email --quiet
 fi
 $WP option update siteurl "$SITE_URL" --quiet
 $WP option update home "$SITE_URL" --quiet

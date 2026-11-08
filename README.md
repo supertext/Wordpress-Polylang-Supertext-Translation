@@ -474,7 +474,7 @@ docker build -f demo/Dockerfile -t wordpress-supertext-demo .
 ```
 
 It runs as the **WordPress** service in the Railway project *supertext-cms-demos-php*
-(Dockerfile path `demo/Dockerfile`, port 8080, health check `/healthz`, database `wordpress` on the shared MySQL)
+(Dockerfile path `demo/Dockerfile`, port 8080, health check `/healthz`, database `wordpress_demo` on the shared MySQL; `DEMO_*` reference the shared values of the Contao service)
 and redeploys on every push to `main`. On every start `demo/docker/entrypoint.sh` creates
 the database if needed, rebuilds `wp-config.php` from the variables, installs WordPress
 once, activates the plugins and runs `demo/docker/setup.php`: languages English (default),
@@ -485,8 +485,8 @@ pages and posts to translate. No one has to register or click through an install
 |---|---|---|
 | `DATABASE_URL` (or `MYSQLHOST`, `MYSQLPORT`, `MYSQLUSER`, `MYSQLPASSWORD`) | yes | MySQL server |
 | `WORDPRESS_DB_NAME` | no | Database name (default: the path of `DATABASE_URL`, else `wordpress`); created if missing |
-| `DEMO_ADMIN_EMAIL`, `DEMO_ADMIN_PASSWORD` | yes | Administrator (login `admin` or the e-mail); password reset on every start |
-| `DEMO_EDITOR_EMAIL`, `DEMO_EDITOR_PASSWORD` | no | Editor account (login `editor` or the e-mail) |
+| `DEMO_ADMIN_EMAIL`, `DEMO_ADMIN_PASSWORD` | yes | Administrator (login `admin` or the e-mail), created on the first start; existing accounts are never changed |
+| `DEMO_EDITOR_EMAIL`, `DEMO_EDITOR_PASSWORD` | no | Editor account (login `editor` or the e-mail), can translate into every demo language |
 | `SUPERTEXT_API_KEY`, `SUPERTEXT_ACCOUNT_EMAIL`, `SUPERTEXT_ENVIRONMENT` | no | Seed the human-translation settings while they are still empty |
 | `POLYLANG_PRO_ZIP_URL` | no | Private download URL of the Polylang Pro zip. Without it the demo runs **free Polylang**: the Supertext settings, orders, tools and string translation work, but AI and human translation of posts need Polylang Pro (the settings page says so). With it, Pro is installed and patched on start |
 | `DEMO_SITE_URL` | no | Public URL (default `https://$RAILWAY_PUBLIC_DOMAIN`) |

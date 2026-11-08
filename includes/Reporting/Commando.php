@@ -230,6 +230,22 @@ class Commando {
 	}
 
 	/**
+	 * When the key was last checked, as shown next to the check ("checked 8 November 2026 10:53").
+	 * Lives here, not in the MT settings, so pages that work without Polylang Pro can use it.
+	 *
+	 * @param KeyCheck $check The check.
+	 * @return string
+	 */
+	public static function checked_at( KeyCheck $check ): string {
+		$time = strtotime( $check->checkedAt );
+		if ( false === $time ) {
+			return $check->checkedAt;
+		}
+		/* translators: %s: date and time of the last API key check. */
+		return sprintf( __( 'checked %s', 'supertext-polylang' ), wp_date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $time ) );
+	}
+
+	/**
 	 * Settings saved: checks the AI key and reports `installed` or `settings_saved`.
 	 * Runs at most once per request.
 	 *

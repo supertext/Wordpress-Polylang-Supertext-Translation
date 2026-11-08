@@ -464,6 +464,37 @@ Without this patch the plugin loads but stays inert, and shows an admin notice s
 `.../plugins/supertext-polylang` folder. `README.md`, `.git`, and the deploy scripts are
 excluded from the sync. The **Polylang patch must be applied on the server too.**
 
+### Demo site on Railway (Docker)
+
+`demo/Dockerfile` builds a ready-to-use WordPress + Polylang site with this plugin, as
+committed (build context is the repository root):
+
+```sh
+docker build -f demo/Dockerfile -t wordpress-supertext-demo .
+```
+
+It runs as the **WordPress** service in the Railway project *supertext-cms-demos-php*
+(Dockerfile path `demo/Dockerfile`, port 8080, database `wordpress` on the shared MySQL)
+and redeploys on every push to `main`. On every start `demo/docker/entrypoint.sh` creates
+the database if needed, rebuilds `wp-config.php` from the variables, installs WordPress
+once, activates the plugins and runs `demo/docker/setup.php`: languages English (default),
+German, French and Italian, the demo accounts, the Supertext settings and five English
+pages and posts to translate. No one has to register or click through an installer.
+
+| Variable | Required | Purpose |
+|---|---|---|
+| `DATABASE_URL` (or `MYSQLHOST`, `MYSQLPORT`, `MYSQLUSER`, `MYSQLPASSWORD`) | yes | MySQL server |
+| `WORDPRESS_DB_NAME` | no | Database name (default: the path of `DATABASE_URL`, else `wordpress`); created if missing |
+| `DEMO_ADMIN_EMAIL`, `DEMO_ADMIN_PASSWORD` | yes | Administrator (login `admin` or the e-mail); password reset on every start |
+| `DEMO_EDITOR_EMAIL`, `DEMO_EDITOR_PASSWORD` | no | Editor account (login `editor` or the e-mail) |
+| `SUPERTEXT_API_KEY`, `SUPERTEXT_ACCOUNT_EMAIL`, `SUPERTEXT_ENVIRONMENT` | no | Seed the human-translation settings while they are still empty |
+| `POLYLANG_PRO_ZIP_URL` | no | Private download URL of the Polylang Pro zip. Without it the demo runs **free Polylang**: the Supertext settings, orders, tools and string translation work, but AI and human translation of posts need Polylang Pro (the settings page says so). With it, Pro is installed and patched on start |
+| `DEMO_SITE_URL` | no | Public URL (default `https://$RAILWAY_PUBLIC_DOMAIN`) |
+| `WORDPRESS_SALT` | no | Seed for the auth keys (default: derived from `DATABASE_URL`, so logins survive redeploys) |
+
+The container has no volume: uploaded media is lost on redeploy; posts, settings and
+accounts live in MySQL.
+
 ## Code quality and security checks
 
 - **Checks** (`.github/workflows/checks.yml`): on every push and pull request, [actionlint](https://github.com/rhysd/actionlint) and [zizmor](https://docs.zizmor.sh) lint the workflows. On pull requests, dependency review fails a PR that adds a package with a known vulnerability (moderate or worse). Third-party actions are pinned to commit SHAs (Dependabot keeps them current); checkouts don't keep credentials (`persist-credentials: false`), and workflows get `contents: read` unless a job needs more (the release job: `contents: write`; the unit-test job: `checks: write` for its test report).

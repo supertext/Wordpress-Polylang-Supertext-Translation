@@ -9,7 +9,6 @@ defined( 'ABSPATH' ) || exit;
 
 use Supertext\Polylang\Human_Translation\Callback;
 use Supertext\Polylang\Machine_Translation\Service;
-use Supertext\Polylang\Machine_Translation\Settings as Mt_Settings;
 use Supertext\Polylang\Reporting\Commando;
 use Supertext\Polylang\Sdk\V1\SupertextException;
 
@@ -249,10 +248,18 @@ class Page {
 		?>
 		<div class="st-card">
 			<div class="st-card__head">
-				<span class="st-tile"><span class="dashicons dashicons-yes-alt"></span></span>
+				<span class="st-tile"><span class="dashicons <?php echo esc_attr( $polylang && $patched && $active ? 'dashicons-yes-alt' : 'dashicons-warning' ); ?>"></span></span>
 				<div>
 					<h2 class="st-card__title"><?php esc_html_e( 'Status', 'supertext-polylang' ); ?></h2>
-					<p class="st-card__subtitle"><?php esc_html_e( 'Everything is connected and running.', 'supertext-polylang' ); ?></p>
+					<p class="st-card__subtitle">
+						<?php
+						if ( $polylang && $patched && $active ) {
+							esc_html_e( 'Everything is connected and running.', 'supertext-polylang' );
+						} else {
+							esc_html_e( 'Not everything is set up yet: see the red rows below.', 'supertext-polylang' );
+						}
+						?>
+					</p>
 				</div>
 			</div>
 			<div class="st-rows">
@@ -344,7 +351,7 @@ class Page {
 			$message = Commando::message( $check, true, $name );
 			$state   = 'success' === $message['type'] ? 'ok' : ( 'error' === $message['type'] ? 'bad' : 'warn' );
 			/* translators: %s: which key, e.g. "AI translation (API key)". */
-			self::state_row( sprintf( __( 'API key check: %s', 'supertext-polylang' ), Commando::key_label( $name ) ), $state, Mt_Settings::checked_at( $check ) );
+			self::state_row( sprintf( __( 'API key check: %s', 'supertext-polylang' ), Commando::key_label( $name ) ), $state, Commando::checked_at( $check ) );
 			printf(
 				'<div class="st-row"><span class="st-row__label">%s</span></div>',
 				wp_kses( $message['text'], array( 'a' => array( 'href' => array(), 'target' => array(), 'rel' => array() ) ) )
@@ -386,7 +393,8 @@ class Page {
 	 * @return void
 	 */
 	private static function render_language_rows(): void {
-		if ( ! function_exists( 'PLL' ) || ! isset( PLL()->model ) ) {
+		// Service implements a Polylang Pro interface: loading it without Pro is a fatal error.
+		if ( ! function_exists( 'PLL' ) || ! isset( PLL()->model ) || ! Patch::polylang_available() ) {
 			return;
 		}
 		$service = PLL()->options['machine_translation_services'][ Service::get_slug() ] ?? array();

@@ -549,6 +549,9 @@ msgstr "Version %s"
 msgid "Everything is connected and running."
 msgstr "Tout est connecté et fonctionne."
 
+msgid "Not everything is set up yet: see the red rows below."
+msgstr "Tout n’est pas encore configuré : voir les lignes en rouge ci-dessous."
+
 msgid "Polylang Pro (Machine Translation)"
 msgstr "Polylang Pro (traduction automatique)"
 

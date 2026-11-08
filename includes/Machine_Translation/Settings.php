@@ -165,12 +165,7 @@ class Settings implements Settings_Interface {
 	 * @return string
 	 */
 	public static function checked_at( KeyCheck $check ): string {
-		$time = strtotime( $check->checkedAt );
-		if ( false === $time ) {
-			return $check->checkedAt;
-		}
-		/* translators: %s: date and time of the last API key check. */
-		return sprintf( __( 'checked %s', 'supertext-polylang' ), wp_date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $time ) );
+		return Commando::checked_at( $check );
 	}
 
 	/**

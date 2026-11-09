@@ -5,7 +5,11 @@
 .DESCRIPTION
     1. Stages all changes, commits with an auto-generated message, and pushes to origin/main.
     2. Syncs the plugin directory to the remote WordPress plugins folder via WinSCP SFTP,
-       excluding .git, deploy.ps1, and README.md.
+       uploading only what the plugin needs at runtime (the same set as demo/Dockerfile:
+       supertext-polylang.php, includes/, languages/, assets/, LICENSE). Repository-only
+       files stay local — git, CI, tests, docs, demo/, scripts/, the deploy scripts and the
+       Markdown docs: the remote plugin folder is served over HTTP, so anything uploaded
+       there is public.
     3. Patches the server's Polylang Pro (Factory.php) to expose the `pll_mt_services`
        filter so Supertext can register as a machine-translation service. Idempotent and
        self-healing across Polylang updates; backs up the original to Factory.php.bak.
@@ -271,7 +275,7 @@ $ScriptContent = @"
 option batch abort
 option confirm off
 open sftp://${Username}:${Password}@${Server}/ -hostkey=*
-synchronize remote -delete -criteria=either -filemask="|.git\;.github\;tests\;docs\;.gitignore;deploy.ps1;deploy.local.ps1;deploy.local.ps1.example;deploy.log;supertext-debug.log;README.md" "$LocalDirUnix" "$RemotePluginDir"
+synchronize remote -delete -criteria=either -filemask="|.git\;.github\;tests\;docs\;demo\;scripts\;.gitignore;deploy.ps1;deploy.local.ps1;deploy.local.ps1.example;deploy.log;supertext-debug.log;README.md;HANDOFF.md;SECURITY.md;phpstan.neon;phpstan-baseline.neon" "$LocalDirUnix" "$RemotePluginDir"
 exit
 "@
 

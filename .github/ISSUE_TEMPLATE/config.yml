@@ -5,5 +5,5 @@ contact_links:
     url: https://integrations.supertext.com/en/support?platform=wordpress
     about: Questions, problems and ideas about the Supertext plugin. You get an answer by email, in your language; the request is tracked here without your contact details.
   - name: Report a security vulnerability
-    url: https://github.com/supertext/wordpress-polylang/security/advisories/new
+    url: https://github.com/Supertext/Wordpress-Polylang-Supertext-Translation/security/advisories/new
     about: Please report security issues privately, not as a public issue.

@@ -983,11 +983,11 @@ msgstr "Traduction professionnelle (adresse e-mail du compte et clé API de comm
 msgid "API key check: %s"
 msgstr "Vérification de la clé API : %s"
 
-msgid "Send plugins and languages to Supertext"
-msgstr "Envoyer les plugins et les langues à Supertext"
+msgid "Send configuration to Supertext"
+msgstr "Envoyer la configuration à Supertext"
 
-msgid "Sends Supertext the plugins and themes installed on this site (name, version, active or not) and its languages with the Supertext language each one is translated into, so Supertext support can help. Nothing else is sent."
-msgstr "Envoie à Supertext les plugins et thèmes installés sur ce site (nom, version, actif ou non) et ses langues avec la langue Supertext dans laquelle chacune est traduite, afin que le support Supertext puisse vous aider. Rien d'autre n'est transmis."
+msgid "Sends Supertext the plugins and themes installed on this site (name, version, active or not) and its Supertext language mappings, so Supertext support can help better. Nothing else is sent."
+msgstr "Envoie à Supertext les plugins et thèmes installés sur ce site (nom, version, actif ou non) et ses correspondances de langues Supertext, afin que le support Supertext puisse mieux vous aider. Rien d'autre n'est transmis."
 
 msgid "Sent: %1$d plugins and themes, %2$d languages."
 msgstr "Envoyé : %1$d plugins et thèmes, %2$d langues."

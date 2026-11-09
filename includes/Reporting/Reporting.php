@@ -251,7 +251,7 @@ final class Reporting {
 	}
 
 	/**
-	 * *Send plugins and languages to Supertext*: sends the list and the language mapping now, in one
+	 * *Send configuration to Supertext*: sends the list and the language mapping now, in one
 	 * report (event `extensions`), only while reports are on.
 	 *
 	 * @param iterable<mixed> $extensions Entries ['name' => …, 'version' => …, 'active' => …, 'type' => …].

@@ -369,7 +369,7 @@ class Page {
 	}
 
 	/**
-	 * Prints the *Send plugins and languages to Supertext* button with its help text.
+	 * Prints the *Send configuration to Supertext* button with its help text.
 	 *
 	 * @return void
 	 */
@@ -379,8 +379,8 @@ class Page {
 			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 				<input type="hidden" name="action" value="<?php echo esc_attr( Commando::EXTENSIONS_ACTION ); ?>" />
 				<?php wp_nonce_field( Commando::EXTENSIONS_ACTION ); ?>
-				<?php submit_button( __( 'Send plugins and languages to Supertext', 'supertext-polylang' ), 'secondary', 'submit', false ); ?>
-				<p class="description"><?php esc_html_e( 'Sends Supertext the plugins and themes installed on this site (name, version, active or not) and its languages with the Supertext language each one is translated into, so Supertext support can help. Nothing else is sent.', 'supertext-polylang' ); ?></p>
+				<?php submit_button( __( 'Send configuration to Supertext', 'supertext-polylang' ), 'secondary', 'submit', false ); ?>
+				<p class="description"><?php esc_html_e( 'Sends Supertext the plugins and themes installed on this site (name, version, active or not) and its Supertext language mappings, so Supertext support can help better. Nothing else is sent.', 'supertext-polylang' ); ?></p>
 			</form>
 		</div>
 		<?php

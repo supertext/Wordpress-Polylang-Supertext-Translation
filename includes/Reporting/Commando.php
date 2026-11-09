@@ -33,7 +33,7 @@ use WP_REST_Response;
  *   where available). Never on front-end views.
  * - authentication_failed(): an AI translation was rejected with 401/403.
  * - test_connection(): the *Test connection* button on the Supertext page.
- * - send_extensions(): the *Send plugins and languages to Supertext* button there.
+ * - send_extensions(): the *Send configuration to Supertext* button there.
  * - The public ping: GET /wp-json/supertext/v1/ping.
  *
  * Two keys are reported by name (Reporting::keys()): the AI translation key
@@ -75,7 +75,7 @@ class Commando {
 	const TEST_TRANSIENT = 'supertext_polylang_key_check';
 
 	/**
-	 * admin-post action of *Send plugins and languages to Supertext*.
+	 * admin-post action of *Send configuration to Supertext*.
 	 *
 	 * @var string
 	 */
@@ -381,7 +381,7 @@ class Commando {
 
 	/**
 	 * The plugins (also must-use plugins and drop-ins) and themes installed on this site,
-	 * for *Send plugins and languages to Supertext*: name, version, active or not, type.
+	 * for *Send configuration to Supertext*: name, version, active or not, type.
 	 * Nothing else (no paths, settings or licence keys).
 	 *
 	 * @return array<int, array{name: string, version: string, active: bool, type: string}>
@@ -427,7 +427,7 @@ class Commando {
 	}
 
 	/**
-	 * *Send plugins and languages to Supertext*: sends the installed plugins and themes and the
+	 * *Send configuration to Supertext*: sends the installed plugins and themes and the
 	 * language mapping now, in one report (event `extensions` with `extensions` and `languages`).
 	 *
 	 * @return array{status: string, count: int, languages: int} status: sent, failed or off; how many
@@ -458,7 +458,7 @@ class Commando {
 	}
 
 	/**
-	 * *Send plugins and languages to Supertext* (admin-post): sends, keeps the result for the next page view.
+	 * *Send configuration to Supertext* (admin-post): sends, keeps the result for the next page view.
 	 *
 	 * @return void
 	 */
@@ -475,7 +475,7 @@ class Commando {
 	}
 
 	/**
-	 * The notice for *Send plugins and languages to Supertext*'s result kept for this user, once.
+	 * The notice for *Send configuration to Supertext*'s result kept for this user, once.
 	 *
 	 * @return array{type: string, text: string}|null
 	 */
@@ -491,7 +491,7 @@ class Commando {
 	}
 
 	/**
-	 * The notice for a result of *Send plugins and languages to Supertext*.
+	 * The notice for a result of *Send configuration to Supertext*.
 	 *
 	 * @param string $status    sent, failed or off.
 	 * @param int    $count     How many plugins and themes were sent.
@@ -524,8 +524,8 @@ class Commando {
 	}
 
 	/**
-	 * The Polylang languages with the Supertext code each is translated as, for *Send plugins and
-	 * languages to Supertext*: the locale (`de_CH`) and the code the plugin actually uses (the
+	 * The Polylang languages with the Supertext code each is translated as, for *Send configuration to
+	 * Supertext*: the locale (`de_CH`) and the code the plugin actually uses (the
 	 * mapping, an exact match or the SDK's default, and the `supertext_polylang_language_code`
 	 * filter; see Service::resolve_target()), null when it isn't mapped. Nothing else.
 	 *

@@ -220,8 +220,8 @@ gives it what WordPress knows and wires the hooks.
   gets one key value per name; the orders value combines email and key
   (`Reporting::orders_key()`), so a change of either is checked again; the checker recognizes it
   by its prefix. Neither the keys nor the email are sent or stored, only their SHA-256 fingerprints.
-- **Installed plugins and languages** (Plugin Health ≥ 0.4, event `extensions`): **Send plugins
-  and languages to Supertext** in the status panel (admin-post action
+- **Installed plugins and languages** (Plugin Health ≥ 0.4, event `extensions`): **Send configuration
+  to Supertext** in the status panel (admin-post action
   `supertext_polylang_send_extensions`) sends one report with `Commando::installed_extensions()`
   (every plugin, `get_plugins()` with `active` from `is_plugin_active()`, network-wide included;
   must-use plugins and drop-ins, type `mu-plugin`, `drop-in`; themes, `wp_get_themes()`, active =
@@ -262,7 +262,7 @@ gives it what WordPress knows and wires the hooks.
   - `testConnection`: **Test connection** in the status panel (admin-post action
     `supertext_polylang_test_connection`; checks both keys, the results are shown once on the next
     page view, one notice per key).
-  - `sendExtensions`: **Send plugins and languages to Supertext** (see above).
+  - `sendExtensions`: **Send configuration to Supertext** (see above).
 - **State:** Plugin Health's `ReporterState` JSON in the option `supertext_polylang_reporter`
   (not autoloaded); it reads the JSON the Supertext SDK 0.1–0.2 reporter stored, so sites keep their
   history (no new `installed` report); since 0.14.0 it also holds `keyChecks` and

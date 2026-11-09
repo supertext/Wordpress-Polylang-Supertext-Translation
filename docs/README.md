@@ -235,20 +235,20 @@ set. With version information off, nothing is sent and the ping answers 404.
 `Cache-Control: no-store`. Exclude it from page caches and firewalls that block the REST API
 if Supertext should see the site as reachable.
 
-#### Send plugins and languages to Supertext
+#### Send configuration to Supertext
 
-The status panel of **Supertext → Settings** has a button **Send plugins and languages to
-Supertext**:
+The status panel of **Supertext → Settings** has a button **Send configuration to Supertext**:
 
 > Sends Supertext the plugins and themes installed on this site (name, version, active or not)
-> and its languages with the Supertext language each one is translated into, so Supertext
-> support can help. Nothing else is sent.
+> and its Supertext language mappings, so Supertext support can help better. Nothing else is
+> sent.
 
 It sends every plugin (active or not, must-use plugins and drop-ins included) and theme with its
 name, version, whether it is active, and whether it is a plugin or a theme, and each Polylang
 language's locale (for example `de_CH`) with the Supertext language the plugin uses for it, the
-same one the status panel shows, or that it isn't mapped. Nothing is sent automatically: only
-when an administrator presses the button, for example when Supertext support asks for it. With
+same one the status panel shows, or that it isn't mapped. Like every version report, it is sent
+with the site's address, so Supertext knows which site it belongs to. Nothing is sent
+automatically: only when an administrator presses the button, for example when Supertext support asks for it. With
 version information off, the button sends nothing and says so (*Turn on “Send version
 information to Supertext” to send the list.*).
 
@@ -327,7 +327,7 @@ The **status panel** at the top of **Supertext → Settings** shows, at a glance
 Polylang Pro is active, whether the patch is applied, whether the Supertext service is
 configured and active, the latest **API key check** of each key (with **Test connection**), each
 Polylang language with its Supertext language (or **Not mapped**), whether version
-information is sent, and the **Send plugins and languages to Supertext** button. (It's the same page shown above.)
+information is sent, and the **Send configuration to Supertext** button. (It's the same page shown above.)
 
 ---
 

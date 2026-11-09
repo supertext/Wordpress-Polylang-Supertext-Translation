@@ -3,7 +3,7 @@
  * Plugin Name:       Supertext for Polylang
  * Plugin URI:        https://github.com/Supertext/Wordpress-Polylang-Supertext-Translation
  * Description:       Adds Supertext as a native machine-translation and human translation service in Polylang Pro.
- * Version:           0.15.0
+ * Version:           0.16.0
  * Requires PHP:      8.1
  * Author:            Supertext
  * Author URI:        https://www.supertext.com
@@ -15,7 +15,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'SUPERTEXT_POLYLANG_VERSION', '0.15.0' );
+define( 'SUPERTEXT_POLYLANG_VERSION', '0.16.0' );
 define( 'SUPERTEXT_POLYLANG_FILE', __FILE__ );
 define( 'SUPERTEXT_POLYLANG_DIR', plugin_dir_path( __FILE__ ) );
 

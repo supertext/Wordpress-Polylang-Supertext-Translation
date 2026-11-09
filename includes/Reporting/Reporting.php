@@ -27,7 +27,7 @@ use Supertext\Polylang\Sdk\V1\Protocol;
  * translation API key (KEY_AI, checked with the SDK's checkApiKey()) and the
  * account email with the Order API Key of professional orders (KEY_ORDERS, checked
  * with a GET of the order types; see orders_key()). Administrators can also send
- * the list of installed plugins and themes (send_extensions()) and the language mapping (send_languages()). The protocol is Supertext Plugin Health's InstallationReporter
+ * the list of installed plugins and themes with the language mapping (send_extensions()). The protocol is Supertext Plugin Health's InstallationReporter
  * (bundled in includes/PluginHealth), with the Supertext SDK's checkApiKey() as its
  * key check; this class only loads the reporter's state, runs one action and
  * stores the new state.
@@ -251,25 +251,23 @@ final class Reporting {
 	}
 
 	/**
-	 * *Send installed plugins to Supertext*: sends the list now (event `extensions`), only
-	 * while reports are on.
+	 * *Send plugins and languages to Supertext*: sends the list and the language mapping now, in one
+	 * report (event `extensions`), only while reports are on.
 	 *
 	 * @param iterable<mixed> $extensions Entries ['name' => …, 'version' => …, 'active' => …, 'type' => …].
+	 * @param iterable<mixed> $languages  Entries ['code' => 'de_CH', 'supertext' => 'de-CH' or null].
 	 * @return ReporterResult|null
 	 */
-	public function send_extensions( iterable $extensions ): ?ReporterResult {
-		return $this->run( static fn( InstallationReporter $r, ReporterState $s ) => $r->sendExtensions( $s, $extensions ) );
-	}
+	public function send_extensions( iterable $extensions, iterable $languages = array() ): ?ReporterResult {
+		$reporter = $this->reporter( static fn(): iterable => $languages );
+		try {
+			$result = $reporter->sendExtensions( $this->state(), $extensions );
+		} catch ( \Throwable $e ) {
+			return null;
+		}
+		$this->store( $result );
 
-	/**
-	 * *Send language settings to Supertext*: sends the language mapping now (event `languages`),
-	 * only while reports are on.
-	 *
-	 * @param iterable<mixed> $languages Entries ['code' => 'de_CH', 'supertext' => 'de-CH' or null].
-	 * @return ReporterResult|null
-	 */
-	public function send_languages( iterable $languages ): ?ReporterResult {
-		return $this->run( static fn( InstallationReporter $r, ReporterState $s ) => $r->sendLanguages( $s, $languages ) );
+		return $result;
 	}
 
 	/**
@@ -364,9 +362,10 @@ final class Reporting {
 	 * Plugin Health's reporter with this installation's values; the key check is the
 	 * SDK's, against the Supertext environment chosen in the settings.
 	 *
+	 * @param (callable(): iterable<mixed>)|null $languages Optional: the language mapping the report carries.
 	 * @return InstallationReporter
 	 */
-	public function reporter(): InstallationReporter {
+	public function reporter( ?callable $languages = null ): InstallationReporter {
 		$transport = $this->transport;
 		$base_url  = $this->api_base_url;
 		$agent     = self::PLUGIN_NAME . '/' . $this->plugin_version;
@@ -394,6 +393,7 @@ final class Reporting {
 			reportUrl: $this->report_url,
 			transport: new Report_Transport( $transport ),
 			now: $this->now,
+			languages: $languages,
 		);
 	}
 
@@ -409,13 +409,23 @@ final class Reporting {
 		} catch ( \Throwable $e ) {
 			return null;
 		}
+		$this->store( $result );
+
+		return $result;
+	}
+
+	/**
+	 * Stores a result's state.
+	 *
+	 * @param ReporterResult $result The result.
+	 * @return void
+	 */
+	private function store( ReporterResult $result ): void {
 		try {
 			( $this->save )( (string) json_encode( $result->state, JSON_UNESCAPED_SLASHES ) );
 		} catch ( \Throwable $e ) {
 			// The state couldn't be stored: it is just empty next time.
 			unset( $e );
 		}
-
-		return $result;
 	}
 }

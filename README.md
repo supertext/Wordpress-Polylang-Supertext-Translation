@@ -220,22 +220,18 @@ gives it what WordPress knows and wires the hooks.
   gets one key value per name; the orders value combines email and key
   (`Reporting::orders_key()`), so a change of either is checked again; the checker recognizes it
   by its prefix. Neither the keys nor the email are sent or stored, only their SHA-256 fingerprints.
-- **Installed plugins** (Plugin Health ≥ 0.3, event `extensions`): **Send installed plugins to
-  Supertext** in the status panel (admin-post action `supertext_polylang_send_extensions`) sends
-  `Commando::installed_extensions()`: every plugin (`get_plugins()`, `active` from
-  `is_plugin_active()`, network-wide included), must-use plugin and drop-in (type `mu-plugin`,
-  `drop-in`), and theme (`wp_get_themes()`, active = the current theme or its parent), with name,
-  version, active and type; never paths, settings or licence keys. Only by hand, only while
-  version reports are on; the result (*Sent: N plugins and themes.*, failed, or reporting off) is
-  shown once on the next page view.
-- **Language mapping** (Plugin Health ≥ 0.4, event `languages`): **Send language settings to
-  Supertext** in the status panel (admin-post action `supertext_polylang_send_languages`) sends
-  `Commando::language_mapping()`: every Polylang language as its locale (`code`, e.g. `de_CH`)
-  and the Supertext code it is translated as (`supertext`, the same resolution as
-  `Service::resolve_target()`: the language's drop-down, an exact match, the SDK's default, the
-  `supertext_polylang_language_code` filter), `null` when it isn't mapped. Same rules as the
-  installed plugins: only by hand, only while version reports are on, the result (*Sent: N
-  languages.*, failed, or reporting off) shown once on the next page view.
+- **Installed plugins and languages** (Plugin Health ≥ 0.4, event `extensions`): **Send plugins
+  and languages to Supertext** in the status panel (admin-post action
+  `supertext_polylang_send_extensions`) sends one report with `Commando::installed_extensions()`
+  (every plugin, `get_plugins()` with `active` from `is_plugin_active()`, network-wide included;
+  must-use plugins and drop-ins, type `mu-plugin`, `drop-in`; themes, `wp_get_themes()`, active =
+  the current theme or its parent; name, version, active and type, never paths, settings or licence
+  keys) and `Commando::language_mapping()` (every Polylang language as its locale, `code`, with
+  the Supertext code it is translated as, `supertext`: the same resolution as
+  `Service::resolve_target()`, i.e. the language's drop-down, an exact match, the SDK's default,
+  the `supertext_polylang_language_code` filter; `null` when it isn't mapped). Only by hand, only
+  while version reports are on; the result (*Sent: N plugins and themes, M languages.*, failed,
+  or reporting off) is shown once on the next page view. Other reports never carry the lists.
 
 - **Setting:** `version_reports` in the option `supertext_polylang_settings` (*Send version
   information to Supertext*, on by default, on **Supertext → Settings**).
@@ -266,8 +262,7 @@ gives it what WordPress knows and wires the hooks.
   - `testConnection`: **Test connection** in the status panel (admin-post action
     `supertext_polylang_test_connection`; checks both keys, the results are shown once on the next
     page view, one notice per key).
-  - `sendExtensions`: **Send installed plugins to Supertext** (see above).
-  - `sendLanguages`: **Send language settings to Supertext** (see above).
+  - `sendExtensions`: **Send plugins and languages to Supertext** (see above).
 - **State:** Plugin Health's `ReporterState` JSON in the option `supertext_polylang_reporter`
   (not autoloaded); it reads the JSON the Supertext SDK 0.1–0.2 reporter stored, so sites keep their
   history (no new `installed` report); since 0.14.0 it also holds `keyChecks` and

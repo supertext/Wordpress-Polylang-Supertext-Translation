@@ -219,14 +219,16 @@ class CommandoTest extends TestCase {
 			Commando::installed_extensions()
 		);
 
-		$this->assertSame( array( 'status' => 'sent', 'count' => 4 ), Commando::send_extensions() );
+		// Without Polylang: the plugins only, no languages.
+		$this->assertSame( array( 'status' => 'sent', 'count' => 4, 'languages' => 0 ), Commando::send_extensions() );
 		$report = json_decode( (string) end( $this->requests )->body, true );
 		$this->assertSame( 'extensions', $report['event'] );
 		$this->assertCount( 4, $report['extensions'] );
+		$this->assertSame( array(), $report['languages'] );
 
 		$this->options['supertext_polylang_settings'] = array( 'version_reports' => false );
 		$this->requests                               = array();
-		$this->assertSame( array( 'status' => 'off', 'count' => 0 ), Commando::send_extensions() );
+		$this->assertSame( array( 'status' => 'off', 'count' => 0, 'languages' => 0 ), Commando::send_extensions() );
 		$this->assertSame( array(), $this->requests );
 	}
 
@@ -258,26 +260,20 @@ class CommandoTest extends TestCase {
 			Commando::language_mapping()
 		);
 
-		$this->assertSame( array( 'status' => 'sent', 'count' => 4 ), Commando::send_languages() );
+		Functions\when( 'get_plugins' )->justReturn( array() );
+		Functions\when( 'get_mu_plugins' )->justReturn( array() );
+		Functions\when( 'get_dropins' )->justReturn( array() );
+		Functions\when( 'wp_get_themes' )->justReturn( array() );
+		Functions\when( 'get_stylesheet' )->justReturn( '' );
+		Functions\when( 'get_template' )->justReturn( '' );
+		$this->assertSame( array( 'status' => 'sent', 'count' => 0, 'languages' => 4 ), Commando::send_extensions() );
 		$report = json_decode( (string) end( $this->requests )->body, true );
-		$this->assertSame( 'languages', $report['event'] );
+		$this->assertSame( 'extensions', $report['event'] );
 		$this->assertSame( array( 'code' => 'en_IE', 'supertext' => null ), $report['languages'][2] );
-
-		$this->options['supertext_polylang_settings'] = array( 'version_reports' => false );
-		$this->requests                               = array();
-		$this->assertSame( array( 'status' => 'off', 'count' => 0 ), Commando::send_languages() );
-		$this->assertSame( array(), $this->requests );
-	}
-
-	public function test_languages_messages(): void {
-		$this->assertSame( array( 'type' => 'success', 'text' => 'Sent: 5 languages.' ), Commando::languages_message( 'sent', 5 ) );
-		$this->assertSame( 'warning', Commando::languages_message( 'off', 0 )['type'] );
-		$this->assertStringContainsString( 'Send version information to Supertext', Commando::languages_message( 'off', 0 )['text'] );
-		$this->assertSame( 'error', Commando::languages_message( 'failed', 0 )['type'] );
 	}
 
 	public function test_extensions_messages(): void {
-		$this->assertSame( array( 'type' => 'success', 'text' => 'Sent: 12 plugins and themes.' ), Commando::extensions_message( 'sent', 12 ) );
+		$this->assertSame( array( 'type' => 'success', 'text' => 'Sent: 12 plugins and themes, 3 languages.' ), Commando::extensions_message( 'sent', 12, 3 ) );
 		$this->assertSame( 'warning', Commando::extensions_message( 'off', 0 )['type'] );
 		$this->assertStringContainsString( 'Send version information to Supertext', Commando::extensions_message( 'off', 0 )['text'] );
 		$this->assertSame( 'error', Commando::extensions_message( 'failed', 0 )['type'] );

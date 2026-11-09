@@ -185,7 +185,6 @@ msgid "Set by the supertext_polylang_language_code filter, which wins over this 
 msgstr "Impostata dal filtro supertext_polylang_language_code, che prevale su questa scelta."
 
 # Translation files (export for translation / import translation)
-
 msgid "Translation files"
 msgstr "File di traduzione"
 
@@ -984,14 +983,14 @@ msgstr "Traduzione professionale (indirizzo e-mail dell'account e chiave API per
 msgid "API key check: %s"
 msgstr "Verifica della chiave API: %s"
 
-msgid "Send installed plugins to Supertext"
-msgstr "Inviare i plugin installati a Supertext"
+msgid "Send plugins and languages to Supertext"
+msgstr "Inviare plugin e lingue a Supertext"
 
-msgid "Sends Supertext the list of the plugins and themes installed on this site (name, version, active or not), so Supertext support can help with conflicts. Nothing else is sent."
-msgstr "Invia a Supertext l'elenco dei plugin e dei temi installati su questo sito (nome, versione, attivo o no), affinché l'assistenza Supertext possa aiutarLa in caso di conflitti. Non viene trasmesso nient'altro."
+msgid "Sends Supertext the plugins and themes installed on this site (name, version, active or not) and its languages with the Supertext language each one is translated into, so Supertext support can help. Nothing else is sent."
+msgstr "Invia a Supertext i plugin e i temi installati su questo sito (nome, versione, attivo o no) e le sue lingue con la lingua Supertext in cui viene tradotta ciascuna, affinché l'assistenza Supertext possa aiutarLa. Non viene trasmesso nient'altro."
 
-msgid "Sent: %d plugins and themes."
-msgstr "Inviato: %d plugin e temi."
+msgid "Sent: %1$d plugins and themes, %2$d languages."
+msgstr "Inviato: %1$d plugin e temi, %2$d lingue."
 
 msgid "Turn on “%s” to send the list."
 msgstr "Attivi «%s» per inviare l'elenco."
@@ -1004,18 +1003,3 @@ msgstr "Supertext ha rifiutato l'indirizzo e-mail dell'account o la chiave API p
 
 msgid "Enter both the account email and the Order API Key for professional translations; you find the Order API Key in your %1$s. No Supertext account yet? Create one at %2$s."
 msgstr "Inserisca sia l'indirizzo e-mail dell'account sia la chiave API per gli ordini per le traduzioni professionali; la chiave API per gli ordini la trova in %1$s. Non ha ancora un account Supertext? Ne crei uno su %2$s."
-
-msgid "Send language settings to Supertext"
-msgstr "Inviare le impostazioni linguistiche a Supertext"
-
-msgid "Sends Supertext the languages of this site and the Supertext language each one is translated into. Nothing else is sent."
-msgstr "Invia a Supertext le lingue di questo sito e la lingua Supertext in cui viene tradotta ciascuna. Non viene trasmesso nient'altro."
-
-msgid "Sent: %d languages."
-msgstr "Inviato: %d lingue."
-
-msgid "Turn on “%s” to send the language settings."
-msgstr "Attivi «%s» per inviare le impostazioni linguistiche."
-
-msgid "The language settings couldn't be sent. Try again later."
-msgstr "Non è stato possibile inviare le impostazioni linguistiche. Riprovi più tardi."

@@ -290,7 +290,6 @@ class Page {
 					$reports ? __( 'On', 'supertext-polylang' ) : __( 'Off', 'supertext-polylang' )
 				);
 				self::render_send_extensions_row();
-				self::render_send_languages_row();
 
 				// Optional features & third-party integrations (a disabled feature is a
 				// choice, not an error — shown neutral rather than red).
@@ -370,7 +369,7 @@ class Page {
 	}
 
 	/**
-	 * Prints the *Send installed plugins to Supertext* button with its help text.
+	 * Prints the *Send plugins and languages to Supertext* button with its help text.
 	 *
 	 * @return void
 	 */
@@ -380,26 +379,8 @@ class Page {
 			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 				<input type="hidden" name="action" value="<?php echo esc_attr( Commando::EXTENSIONS_ACTION ); ?>" />
 				<?php wp_nonce_field( Commando::EXTENSIONS_ACTION ); ?>
-				<?php submit_button( __( 'Send installed plugins to Supertext', 'supertext-polylang' ), 'secondary', 'submit', false ); ?>
-				<p class="description"><?php esc_html_e( 'Sends Supertext the list of the plugins and themes installed on this site (name, version, active or not), so Supertext support can help with conflicts. Nothing else is sent.', 'supertext-polylang' ); ?></p>
-			</form>
-		</div>
-		<?php
-	}
-
-	/**
-	 * Prints the *Send language settings to Supertext* button with its help text.
-	 *
-	 * @return void
-	 */
-	private static function render_send_languages_row(): void {
-		?>
-		<div class="st-row">
-			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
-				<input type="hidden" name="action" value="<?php echo esc_attr( Commando::LANGUAGES_ACTION ); ?>" />
-				<?php wp_nonce_field( Commando::LANGUAGES_ACTION ); ?>
-				<?php submit_button( __( 'Send language settings to Supertext', 'supertext-polylang' ), 'secondary', 'submit', false ); ?>
-				<p class="description"><?php esc_html_e( 'Sends Supertext the languages of this site and the Supertext language each one is translated into. Nothing else is sent.', 'supertext-polylang' ); ?></p>
+				<?php submit_button( __( 'Send plugins and languages to Supertext', 'supertext-polylang' ), 'secondary', 'submit', false ); ?>
+				<p class="description"><?php esc_html_e( 'Sends Supertext the plugins and themes installed on this site (name, version, active or not) and its languages with the Supertext language each one is translated into, so Supertext support can help. Nothing else is sent.', 'supertext-polylang' ); ?></p>
 			</form>
 		</div>
 		<?php
@@ -484,10 +465,9 @@ class Page {
 				wp_kses( $message['text'], array( 'a' => array( 'href' => array(), 'target' => array(), 'rel' => array() ) ) )
 			);
 		}
-		foreach ( array( Commando::take_extensions_result(), Commando::take_languages_result() ) as $sent ) {
-			if ( null !== $sent ) {
-				printf( '<div class="notice notice-%s is-dismissible"><p>%s</p></div>', esc_attr( $sent['type'] ), esc_html( $sent['text'] ) );
-			}
+		$sent = Commando::take_extensions_result();
+		if ( null !== $sent ) {
+			printf( '<div class="notice notice-%s is-dismissible"><p>%s</p></div>', esc_attr( $sent['type'] ), esc_html( $sent['text'] ) );
 		}
 		if ( is_array( $notice ) ) {
 			delete_transient( $notice_key );

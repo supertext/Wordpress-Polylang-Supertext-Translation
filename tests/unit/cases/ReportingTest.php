@@ -343,7 +343,8 @@ class ReportingTest extends TestCase {
 			array(
 				array( 'name' => 'Polylang Pro', 'version' => '3.7.2', 'active' => true, 'type' => 'plugin' ),
 				array( 'name' => 'Twenty Twenty-Five', 'version' => '1.2', 'active' => false, 'type' => 'theme' ),
-			)
+			),
+			array( array( 'code' => 'de_CH', 'supertext' => 'de-CH' ), array( 'code' => 'en_IE' ) )
 		);
 		$this->assertTrue( $result->sent );
 		$this->assertSame( 'extensions', $result->event );
@@ -352,6 +353,11 @@ class ReportingTest extends TestCase {
 		$this->assertSame( 'Polylang Pro', $report['extensions'][0]['name'] );
 		$this->assertFalse( $report['extensions'][1]['active'] );
 		$this->assertArrayHasKey( 'api_keys', $report );
+		$this->assertSame( array( array( 'code' => 'de_CH', 'supertext' => 'de-CH' ), array( 'code' => 'en_IE', 'supertext' => null ) ), $report['languages'] );
+
+		// Other reports never carry the languages.
+		$this->reporting()->report_check();
+		$this->assertArrayNotHasKey( 'languages', $this->reports()[2] );
 
 		$this->requests = array();
 		$this->assertFalse( $this->reporting( false )->send_extensions( array( array( 'name' => 'X' ) ) )->sent );

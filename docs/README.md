@@ -249,6 +249,19 @@ automatically: only when an administrator presses the button, for example when S
 support asks for it. With version information off, the button sends nothing and says so
 (*Turn on “Send version information to Supertext” to send the list.*).
 
+#### Send language settings to Supertext
+
+Next to it, **Send language settings to Supertext**:
+
+> Sends Supertext the languages of this site and the Supertext language each one is translated
+> into. Nothing else is sent.
+
+It sends each Polylang language's locale (for example `de_CH`) with the Supertext language the
+plugin uses for it, the same one the status panel shows, or that it isn't mapped. Supertext
+uses it to see which languages are translated and to help when a language isn't mapped yet.
+Like the list of plugins, it is only sent when an administrator presses the button, and not
+while version information is off.
+
 #### API key check
 
 Both keys are checked automatically when you save the settings, and again when one of them
@@ -324,7 +337,7 @@ The **status panel** at the top of **Supertext → Settings** shows, at a glance
 Polylang Pro is active, whether the patch is applied, whether the Supertext service is
 configured and active, the latest **API key check** of each key (with **Test connection**), each
 Polylang language with its Supertext language (or **Not mapped**), whether version
-information is sent, and the **Send installed plugins to Supertext** button. (It's the same page shown above.)
+information is sent, and the **Send installed plugins to Supertext** and **Send language settings to Supertext** buttons. (It's the same page shown above.)
 
 ---
 

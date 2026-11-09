@@ -27,7 +27,7 @@ use Supertext\Polylang\Sdk\V1\Protocol;
  * translation API key (KEY_AI, checked with the SDK's checkApiKey()) and the
  * account email with the Order API Key of professional orders (KEY_ORDERS, checked
  * with a GET of the order types; see orders_key()). Administrators can also send
- * the list of installed plugins and themes (send_extensions()). The protocol is Supertext Plugin Health's InstallationReporter
+ * the list of installed plugins and themes (send_extensions()) and the language mapping (send_languages()). The protocol is Supertext Plugin Health's InstallationReporter
  * (bundled in includes/PluginHealth), with the Supertext SDK's checkApiKey() as its
  * key check; this class only loads the reporter's state, runs one action and
  * stores the new state.
@@ -259,6 +259,17 @@ final class Reporting {
 	 */
 	public function send_extensions( iterable $extensions ): ?ReporterResult {
 		return $this->run( static fn( InstallationReporter $r, ReporterState $s ) => $r->sendExtensions( $s, $extensions ) );
+	}
+
+	/**
+	 * *Send language settings to Supertext*: sends the language mapping now (event `languages`),
+	 * only while reports are on.
+	 *
+	 * @param iterable<mixed> $languages Entries ['code' => 'de_CH', 'supertext' => 'de-CH' or null].
+	 * @return ReporterResult|null
+	 */
+	public function send_languages( iterable $languages ): ?ReporterResult {
+		return $this->run( static fn( InstallationReporter $r, ReporterState $s ) => $r->sendLanguages( $s, $languages ) );
 	}
 
 	/**

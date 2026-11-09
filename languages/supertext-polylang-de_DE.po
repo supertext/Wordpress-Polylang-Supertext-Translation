@@ -1004,3 +1004,18 @@ msgstr "Supertext hat die Konto-E-Mail-Adresse oder den Order-API-Schlüssel abg
 
 msgid "Enter both the account email and the Order API Key for professional translations; you find the Order API Key in your %1$s. No Supertext account yet? Create one at %2$s."
 msgstr "Tragen Sie für professionelle Übersetzungen sowohl die Konto-E-Mail-Adresse als auch den Order-API-Schlüssel ein; den Order-API-Schlüssel finden Sie in %1$s. Noch kein Supertext-Konto? Erstellen Sie eines auf %2$s."
+
+msgid "Send language settings to Supertext"
+msgstr "Spracheinstellungen an Supertext senden"
+
+msgid "Sends Supertext the languages of this site and the Supertext language each one is translated into. Nothing else is sent."
+msgstr "Sendet Supertext die Sprachen dieser Website und die Supertext-Sprache, in die jede übersetzt wird. Sonst wird nichts übertragen."
+
+msgid "Sent: %d languages."
+msgstr "Gesendet: %d Sprachen."
+
+msgid "Turn on “%s” to send the language settings."
+msgstr "Aktivieren Sie „%s“, um die Spracheinstellungen zu senden."
+
+msgid "The language settings couldn't be sent. Try again later."
+msgstr "Die Spracheinstellungen konnten nicht gesendet werden. Versuchen Sie es später erneut."

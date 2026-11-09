@@ -7,7 +7,10 @@ namespace Supertext\Polylang\Reporting;
 
 defined( 'ABSPATH' ) || exit;
 
+use Supertext\Polylang\Admin\Patch;
 use Supertext\Polylang\Admin\Settings;
+use Supertext\Polylang\Machine_Translation\Language_Codes;
+use Supertext\Polylang\Machine_Translation\Service;
 use Supertext\Polylang\Machine_Translation\Wp_Http_Transport;
 use Supertext\Polylang\PluginHealth\KeyCheck;
 use Supertext\Polylang\PluginHealth\ReporterResult;
@@ -31,6 +34,7 @@ use WP_REST_Response;
  * - authentication_failed(): an AI translation was rejected with 401/403.
  * - test_connection(): the *Test connection* button on the Supertext page.
  * - send_extensions(): the *Send installed plugins to Supertext* button there.
+ * - send_languages(): the *Send language settings to Supertext* button there.
  * - The public ping: GET /wp-json/supertext/v1/ping.
  *
  * Two keys are reported by name (Reporting::keys()): the AI translation key
@@ -86,6 +90,20 @@ class Commando {
 	const EXTENSIONS_TRANSIENT = 'supertext_polylang_extensions_sent';
 
 	/**
+	 * admin-post action of *Send language settings to Supertext*.
+	 *
+	 * @var string
+	 */
+	const LANGUAGES_ACTION = 'supertext_polylang_send_languages';
+
+	/**
+	 * Transient (per user) holding that button's result for the next page view.
+	 *
+	 * @var string
+	 */
+	const LANGUAGES_TRANSIENT = 'supertext_polylang_languages_sent';
+
+	/**
 	 * Tests only: the transport for the check and the report.
 	 *
 	 * @var HttpTransport|null
@@ -123,6 +141,7 @@ class Commando {
 		add_action( 'admin_init', array( self::class, 'maybe_on_request' ) );
 		add_action( 'admin_post_' . self::TEST_ACTION, array( self::class, 'handle_test_connection' ) );
 		add_action( 'admin_post_' . self::EXTENSIONS_ACTION, array( self::class, 'handle_send_extensions' ) );
+		add_action( 'admin_post_' . self::LANGUAGES_ACTION, array( self::class, 'handle_send_languages' ) );
 		add_action( 'update_option_polylang', array( self::class, 'polylang_options_updated' ), 10, 2 );
 		add_filter( 'pre_update_option_' . Settings::OPTION, array( self::class, 'own_settings_saved' ), 10, 2 );
 	}
@@ -510,6 +529,145 @@ class Commando {
 		return array(
 			'type' => 'error',
 			'text' => __( 'The list couldn\'t be sent. Try again later.', 'supertext-polylang' ),
+		);
+	}
+
+	/**
+	 * The Polylang languages with the Supertext code each is translated as, for *Send language
+	 * settings to Supertext*: the locale (`de_CH`) and the code the plugin actually uses (the
+	 * mapping, an exact match or the SDK's default, and the `supertext_polylang_language_code`
+	 * filter; see Service::resolve_target()), null when it isn't mapped. Nothing else.
+	 *
+	 * @return array<int, array{code: string, supertext: string|null}>
+	 */
+	public static function language_mapping(): array {
+		if ( ! function_exists( 'PLL' ) || ! isset( PLL()->model ) ) {
+			return array();
+		}
+		$service = PLL()->options['machine_translation_services']['supertext'] ?? array();
+		$mapping = is_array( $service ) && isset( $service['languages'] ) && is_array( $service['languages'] ) ? $service['languages'] : array();
+		$list    = array();
+		foreach ( PLL()->model->get_languages_list() as $language ) {
+			$list[] = array(
+				'code'      => (string) $language->locale,
+				'supertext' => self::supertext_code( $language, $mapping ),
+			);
+		}
+
+		return $list;
+	}
+
+	/**
+	 * The Supertext code of a Polylang language, or null when it isn't mapped.
+	 *
+	 * @param object                $language A PLL_Language (slug, locale).
+	 * @param array<string, string> $mapping  Polylang slug => Supertext code.
+	 * @return string|null
+	 */
+	private static function supertext_code( $language, array $mapping ): ?string {
+		try {
+			// Service implements a Polylang Pro interface: loading it without Pro is a fatal error.
+			if ( Patch::polylang_available() && $language instanceof \PLL_Language ) {
+				return Service::resolve_target( $language, $mapping );
+			}
+			$mapped = trim( (string) ( $mapping[ (string) $language->slug ] ?? '' ) );
+			$code   = Language_Codes::resolve( (string) $language->locale, '' !== $mapped ? array( (string) $language->locale => $mapped ) : array() ) ?? '';
+			/** This filter is documented in includes/Machine_Translation/Service.php */
+			$code = trim( (string) apply_filters( 'supertext_polylang_language_code', $code, $language ) );
+
+			return '' !== $code ? $code : null;
+		} catch ( \Throwable $e ) {
+			return null;
+		}
+	}
+
+	/**
+	 * *Send language settings to Supertext*: sends the language mapping now.
+	 *
+	 * @return array{status: string, count: int} status: sent, failed or off.
+	 */
+	public static function send_languages(): array {
+		if ( ! self::enabled() || null === self::site_url() ) {
+			return array( 'status' => 'off', 'count' => 0 );
+		}
+		try {
+			$list   = self::language_mapping();
+			$result = self::reporting()->send_languages( $list );
+			$count  = count( \Supertext\Polylang\PluginHealth\InstallationReporter::normalizeLanguages( $list ) );
+		} catch ( \Throwable $e ) {
+			self::debug( $e->getMessage() );
+			$result = null;
+			$count  = 0;
+		}
+
+		return array(
+			'status' => $result instanceof ReporterResult && $result->sent ? 'sent' : 'failed',
+			'count'  => $count,
+		);
+	}
+
+	/**
+	 * *Send language settings to Supertext* (admin-post): sends, keeps the result for the next page view.
+	 *
+	 * @return void
+	 */
+	public static function handle_send_languages(): void {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You are not allowed to do this.', 'supertext-polylang' ) );
+		}
+		check_admin_referer( self::LANGUAGES_ACTION );
+
+		set_transient( self::LANGUAGES_TRANSIENT . '_' . get_current_user_id(), self::send_languages(), 60 );
+
+		wp_safe_redirect( admin_url( 'admin.php?page=supertext-polylang' ) );
+		exit;
+	}
+
+	/**
+	 * The notice for *Send language settings to Supertext*'s result kept for this user, once.
+	 *
+	 * @return array{type: string, text: string}|null
+	 */
+	public static function take_languages_result(): ?array {
+		$key   = self::LANGUAGES_TRANSIENT . '_' . get_current_user_id();
+		$value = get_transient( $key );
+		if ( ! is_array( $value ) ) {
+			return null;
+		}
+		delete_transient( $key );
+
+		return self::languages_message( (string) ( $value['status'] ?? '' ), (int) ( $value['count'] ?? 0 ) );
+	}
+
+	/**
+	 * The notice for a result of *Send language settings to Supertext*.
+	 *
+	 * @param string $status sent, failed or off.
+	 * @param int    $count  How many languages were sent.
+	 * @return array{type: string, text: string}
+	 */
+	public static function languages_message( string $status, int $count ): array {
+		if ( 'sent' === $status ) {
+			return array(
+				'type' => 'success',
+				/* translators: %d: how many languages were sent. */
+				'text' => sprintf( __( 'Sent: %d languages.', 'supertext-polylang' ), $count ),
+			);
+		}
+		if ( 'off' === $status ) {
+			return array(
+				'type' => 'warning',
+				'text' => sprintf(
+					/* translators: %s: the name of the setting "Send version information to Supertext". */
+					__( 'Turn on “%s” to send the language settings.', 'supertext-polylang' ),
+					__( 'Send version information to Supertext', 'supertext-polylang' )
+				),
+			);
+		}
+
+		return array(
+			'type' => 'error',
+			'text' => __( 'The language settings couldn\'t be sent. Try again later.', 'supertext-polylang' ),
 		);
 	}
 

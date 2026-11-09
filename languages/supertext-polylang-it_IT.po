@@ -1004,3 +1004,18 @@ msgstr "Supertext ha rifiutato l'indirizzo e-mail dell'account o la chiave API p
 
 msgid "Enter both the account email and the Order API Key for professional translations; you find the Order API Key in your %1$s. No Supertext account yet? Create one at %2$s."
 msgstr "Inserisca sia l'indirizzo e-mail dell'account sia la chiave API per gli ordini per le traduzioni professionali; la chiave API per gli ordini la trova in %1$s. Non ha ancora un account Supertext? Ne crei uno su %2$s."
+
+msgid "Send language settings to Supertext"
+msgstr "Inviare le impostazioni linguistiche a Supertext"
+
+msgid "Sends Supertext the languages of this site and the Supertext language each one is translated into. Nothing else is sent."
+msgstr "Invia a Supertext le lingue di questo sito e la lingua Supertext in cui viene tradotta ciascuna. Non viene trasmesso nient'altro."
+
+msgid "Sent: %d languages."
+msgstr "Inviato: %d lingue."
+
+msgid "Turn on “%s” to send the language settings."
+msgstr "Attivi «%s» per inviare le impostazioni linguistiche."
+
+msgid "The language settings couldn't be sent. Try again later."
+msgstr "Non è stato possibile inviare le impostazioni linguistiche. Riprovi più tardi."

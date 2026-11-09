@@ -230,6 +230,52 @@ class CommandoTest extends TestCase {
 		$this->assertSame( array(), $this->requests );
 	}
 
+	public function test_language_mapping_sends_each_locale_with_its_supertext_code(): void {
+		$lang  = static fn( string $slug, string $locale ) => (object) array( 'slug' => $slug, 'locale' => $locale );
+		$model = new class( array( $lang( 'de', 'de_CH' ), $lang( 'fr', 'fr_FR' ), $lang( 'ie', 'en_IE' ), $lang( 'formal', 'de_DE_formal' ) ) ) {
+			private $list;
+			public function __construct( array $list ) {
+				$this->list = $list;
+			}
+			public function get_languages_list() {
+				return $this->list;
+			}
+		};
+		$pll   = (object) array(
+			'model'   => $model,
+			// The administrator mapped fr to fr-CH; en_IE has no mapping and no default.
+			'options' => array( 'machine_translation_services' => array( 'supertext' => array( 'languages' => array( 'fr' => 'fr-CH' ) ) ) ),
+		);
+		Functions\when( 'PLL' )->justReturn( $pll );
+
+		$this->assertSame(
+			array(
+				array( 'code' => 'de_CH', 'supertext' => 'de-CH' ),
+				array( 'code' => 'fr_FR', 'supertext' => 'fr-CH' ),
+				array( 'code' => 'en_IE', 'supertext' => null ),
+				array( 'code' => 'de_DE_formal', 'supertext' => 'de-DE' ),
+			),
+			Commando::language_mapping()
+		);
+
+		$this->assertSame( array( 'status' => 'sent', 'count' => 4 ), Commando::send_languages() );
+		$report = json_decode( (string) end( $this->requests )->body, true );
+		$this->assertSame( 'languages', $report['event'] );
+		$this->assertSame( array( 'code' => 'en_IE', 'supertext' => null ), $report['languages'][2] );
+
+		$this->options['supertext_polylang_settings'] = array( 'version_reports' => false );
+		$this->requests                               = array();
+		$this->assertSame( array( 'status' => 'off', 'count' => 0 ), Commando::send_languages() );
+		$this->assertSame( array(), $this->requests );
+	}
+
+	public function test_languages_messages(): void {
+		$this->assertSame( array( 'type' => 'success', 'text' => 'Sent: 5 languages.' ), Commando::languages_message( 'sent', 5 ) );
+		$this->assertSame( 'warning', Commando::languages_message( 'off', 0 )['type'] );
+		$this->assertStringContainsString( 'Send version information to Supertext', Commando::languages_message( 'off', 0 )['text'] );
+		$this->assertSame( 'error', Commando::languages_message( 'failed', 0 )['type'] );
+	}
+
 	public function test_extensions_messages(): void {
 		$this->assertSame( array( 'type' => 'success', 'text' => 'Sent: 12 plugins and themes.' ), Commando::extensions_message( 'sent', 12 ) );
 		$this->assertSame( 'warning', Commando::extensions_message( 'off', 0 )['type'] );

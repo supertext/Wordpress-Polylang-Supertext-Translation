@@ -8,3 +8,16 @@ updates:
     groups:
       actions:
         patterns: ["*"]
+  - package-ecosystem: "composer"
+    directory: "/tests/unit"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    groups:
+      composer-minor-and-patch:
+        update-types: ["minor", "patch"]
+    ignore:
+      # PHPUnit 12 needs PHP 8.3 and 13 needs PHP 8.4; the tests run on PHP 8.2,
+      # the oldest version the plugin supports (see tests/README.md).
+      - dependency-name: "phpunit/phpunit"
+        update-types: ["version-update:semver-major"]

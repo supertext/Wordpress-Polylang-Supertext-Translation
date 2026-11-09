@@ -6,6 +6,7 @@
 namespace Supertext\Polylang\Tests\Cases;
 
 use Brain\Monkey\Functions;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Supertext\Polylang\Admin\Settings;
 use Supertext\Polylang\Tests\TestCase;
 
@@ -81,9 +82,7 @@ class SettingsTest extends TestCase {
 		$this->assertSame( 51, $out['service_id'] );
 	}
 
-	/**
-	 * @dataProvider provide_unusable_service_ids
-	 */
+	#[DataProvider( 'provide_unusable_service_ids' )]
 	public function test_sanitize_falls_back_to_the_default_service_id( $input ): void {
 		Functions\when( 'sanitize_email' )->returnArg();
 		Functions\when( 'sanitize_text_field' )->returnArg();

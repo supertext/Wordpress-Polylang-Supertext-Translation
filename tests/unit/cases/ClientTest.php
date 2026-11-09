@@ -6,6 +6,7 @@
 namespace Supertext\Polylang\Tests\Cases;
 
 use Brain\Monkey\Functions;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Supertext\Polylang\Human_Translation\Client;
 use Supertext\Polylang\Tests\TestCase;
 
@@ -127,9 +128,7 @@ class ClientTest extends TestCase {
 		$this->assertFalse( $called, 'No HTTP request should be made without credentials' );
 	}
 
-	/**
-	 * @dataProvider provide_locales
-	 */
+	#[DataProvider( 'provide_locales' )]
 	public function test_requests_ask_for_the_back_end_language( string $locale, string $expected ): void {
 		$this->locale = $locale;
 		$cap          = $this->captureRequest( 200, '[]' );

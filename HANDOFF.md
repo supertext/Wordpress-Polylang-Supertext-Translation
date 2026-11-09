@@ -25,7 +25,7 @@ WordPress plugin integrating **Supertext** translation with **Polylang Pro**:
   `deploy.local.ps1` (gitignored). Carried over from the old project.
 - **New plugin folder on server:** `.../wp-content/plugins/supertext-polylang`
   (set in `deploy.local.ps1`, so it won't overwrite the old `supertext` plugin).
-- **PHP 8.3 on server.** Target PHP 8.1+, WP 6.0+.
+- **PHP 8.3 on server.** Target PHP 8.2+ (8.1 dropped: end of life since 31 Dec 2025), WP 6.0+.
 - **wp-config.php:** `define('EMPTY_TRASH_DAYS', 0);` was added (posts delete immediately,
   no trash) — backup at `wp-config.php.bak` on the server.
 - **GitHub:** new repo `https://github.com/Supertext/Wordpress-Polylang-Supertext-Translation`.

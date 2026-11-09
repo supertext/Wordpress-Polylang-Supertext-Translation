@@ -52,7 +52,7 @@ translation** service in **Polylang Pro**.
 
 ## Requirements
 
-- **WordPress** 6.0+ and **PHP** 8.1+
+- **WordPress** 6.0+ and **PHP** 8.2+
 - **Polylang Pro** with the **Machine Translation** module
 - A **Supertext** account — [create one (or log in)](https://www.supertext.com/person/en/account/signin)
   - an **AI translation API key** (for AI), and/or

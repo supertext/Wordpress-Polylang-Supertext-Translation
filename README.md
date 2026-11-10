@@ -34,7 +34,7 @@ text endpoint's 10k-char / 5-req-per-second limits.
 
 Because the file endpoint is **asynchronous**, `Client::translate()` performs the full
 round-trip synchronously within Polylang's MT contract. The protocol is done by the
-official **Supertext PHP SDK** ([Supertext/Supertext-API-SDK-and-Guide](https://github.com/Supertext/Supertext-API-SDK-and-Guide)),
+official **Supertext PHP SDK** ([Supertext/Supertext-API-SDK-Guide](https://github.com/Supertext/Supertext-API-SDK-Guide)),
 shipped inside the plugin in `includes/Sdk/` (namespace `Supertext\Polylang\Sdk`, so it
 can't clash with another plugin that ships the SDK); HTTP goes through WordPress
 (`wp_remote_request()`, `Machine_Translation\Wp_Http_Transport`):

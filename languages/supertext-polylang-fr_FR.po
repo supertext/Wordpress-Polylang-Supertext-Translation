@@ -1003,3 +1003,18 @@ msgstr "Supertext a refusé l'adresse e-mail du compte ou la clé API de command
 
 msgid "Enter both the account email and the Order API Key for professional translations; you find the Order API Key in your %1$s. No Supertext account yet? Create one at %2$s."
 msgstr "Saisissez l'adresse e-mail du compte et la clé API de commande pour les traductions professionnelles ; vous trouverez la clé API de commande dans %1$s. Pas encore de compte Supertext ? Créez-en un sur %2$s."
+
+msgid "Page screenshots (VibeBoost API key)"
+msgstr "Captures d'écran des pages (clé API VibeBoost)"
+
+msgid "VibeBoost API key checked: page screenshots work."
+msgstr "Clé API VibeBoost vérifiée : les captures d'écran des pages fonctionnent."
+
+msgid "VibeBoost rejected the API key, so orders are placed without page screenshots. Check the key or create a new one in your %s."
+msgstr "VibeBoost a refusé la clé API : les commandes sont donc passées sans captures d'écran des pages. Vérifiez la clé ou créez-en une nouvelle dans votre %s."
+
+msgid "Page screenshots are on but no VibeBoost API key is set, so orders are placed without them. Create a key in your %s, or turn page screenshots off."
+msgstr "Les captures d'écran des pages sont activées, mais aucune clé API VibeBoost n'est définie : les commandes sont donc passées sans elles. Créez une clé dans votre %s ou désactivez les captures d'écran des pages."
+
+msgid "The VibeBoost API key couldn't be checked: VibeBoost can't be reached or answered with an error. Check again later."
+msgstr "La clé API VibeBoost n'a pas pu être vérifiée : VibeBoost est injoignable ou a répondu par une erreur. Vérifiez à nouveau plus tard."

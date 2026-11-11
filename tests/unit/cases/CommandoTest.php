@@ -161,8 +161,9 @@ class CommandoTest extends TestCase {
 
 	public function test_professional_orders_credentials_are_checked_and_reported_by_name(): void {
 		$this->options['supertext_polylang_settings'] = array(
-			'human_email'   => 'shop@example.ch',
-			'human_api_key' => 'order-key',
+			'human_email'         => 'shop@example.ch',
+			'human_api_key'       => 'order-key',
+			'screenshots_enabled' => false,
 		);
 
 		$checks = Commando::test_connection();
@@ -172,6 +173,38 @@ class CommandoTest extends TestCase {
 		$this->assertSame( 'https://www.supertext.com/api/v1/util/ordertype/' . Settings::service_id(), $this->requests[1]->url );
 		$this->assertSame( KeyCheck::OK, Commando::last_check( Reporting::KEY_ORDERS )->status );
 		$this->assertCount( 2, Commando::last_checks() );
+	}
+
+	public function test_the_vibeboost_key_is_checked_while_page_screenshots_are_on_or_a_key_is_set(): void {
+		$this->options['supertext_polylang_settings'] = array( 'screenshots_enabled' => false );
+		$this->assertArrayNotHasKey( Reporting::KEY_SCREENSHOTS, Commando::keys() );
+
+		$this->options['supertext_polylang_settings'] = array( 'screenshots_enabled' => true );
+		$this->assertSame( '', Commando::keys()[ Reporting::KEY_SCREENSHOTS ], 'on without a key: reported as missing' );
+
+		$this->options['supertext_polylang_settings'] = array(
+			'screenshots_enabled' => false,
+			'screenshots_api_key' => 'vibe_abc',
+		);
+		$this->assertSame( Reporting::SCREENSHOTS_PREFIX . 'vibe_abc', Commando::keys()[ Reporting::KEY_SCREENSHOTS ] );
+
+		$checks = Commando::test_connection();
+		$this->assertArrayHasKey( Reporting::KEY_SCREENSHOTS, $checks );
+		$vibeboost = array_values( array_filter( $this->requests, static fn( $r ) => str_starts_with( $r->url, 'https://vibeboost.me/api/screenshot?' ) ) );
+		$this->assertCount( 1, $vibeboost );
+		$this->assertSame( 'Bearer vibe_abc', $vibeboost[0]->headers['Authorization'] );
+		$this->assertStringContainsString( 'fullPage=true', $vibeboost[0]->url );
+		$this->assertStringContainsString( rawurlencode( Reporting::SCREENSHOTS_PROBE_URL ), $vibeboost[0]->url );
+	}
+
+	public function test_vibeboost_messages(): void {
+		$this->assertSame( 'success', Commando::message( new KeyCheck( KeyCheck::OK, '2026-10-14T08:00:00Z' ), false, Reporting::KEY_SCREENSHOTS )['type'] );
+		foreach ( array( KeyCheck::INVALID, KeyCheck::MISSING ) as $status ) {
+			$message = Commando::message( new KeyCheck( $status, '2026-10-14T08:00:00Z' ), false, Reporting::KEY_SCREENSHOTS );
+			$this->assertSame( 'warning', $message['type'], 'orders still work without screenshots' );
+			$this->assertStringContainsString( 'https://vibeboost.me/account', $message['text'] );
+		}
+		$this->assertSame( 'Page screenshots (VibeBoost API key)', Commando::key_label( Reporting::KEY_SCREENSHOTS ) );
 	}
 
 	public function test_orders_messages_point_to_the_account_settings(): void {

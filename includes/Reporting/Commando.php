@@ -205,6 +205,7 @@ class Commando {
 			},
 			orders_base_url: $orders_base_url ?? Settings::base_url(),
 			orders_service_id: Settings::service_id(),
+			screenshots_endpoint: (string) apply_filters( 'supertext_polylang_screenshot_endpoint', \Supertext\Polylang\Integrations\VibeBoost\Client::ENDPOINT ),
 		);
 	}
 
@@ -218,17 +219,22 @@ class Commando {
 	}
 
 	/**
-	 * The keys by name (Reporting::keys()): the AI key and the professional-orders credentials.
+	 * The keys by name (Reporting::keys()): the AI key, the professional-orders credentials
+	 * and, while page screenshots are on or a key is set, the VibeBoost key.
 	 *
 	 * @param string|null               $ai_key The AI key being saved; null: the stored one.
 	 * @param array<string, mixed>|null $own    The Supertext settings being saved; null: the stored ones.
 	 * @return array<string, string>
 	 */
 	public static function keys( ?string $ai_key = null, ?array $own = null ): array {
+		$shots_on  = null !== $own ? ! empty( $own['screenshots_enabled'] ) : Settings::screenshots_enabled();
+		$shots_key = null !== $own ? (string) ( $own['screenshots_api_key'] ?? '' ) : Settings::screenshots_api_key();
+
 		return Reporting::keys(
 			$ai_key ?? self::api_key(),
 			null !== $own ? (string) ( $own['human_email'] ?? '' ) : Settings::email(),
-			null !== $own ? (string) ( $own['human_api_key'] ?? '' ) : Settings::api_key()
+			null !== $own ? (string) ( $own['human_api_key'] ?? '' ) : Settings::api_key(),
+			$shots_on || '' !== trim( $shots_key ) ? $shots_key : null
 		);
 	}
 
@@ -314,7 +320,7 @@ class Commando {
 	 * A translation or an order was rejected with 401/403.
 	 *
 	 * @param int    $http_status 401 or 403.
-	 * @param string $key_name    Reporting::KEY_AI (an AI translation) or Reporting::KEY_ORDERS (an order request).
+	 * @param string $key_name    Reporting::KEY_AI (an AI translation), Reporting::KEY_ORDERS (an order request) or Reporting::KEY_SCREENSHOTS (a page screenshot).
 	 * @return void
 	 */
 	public static function authentication_failed( int $http_status = 401, string $key_name = Reporting::KEY_AI ): void {
@@ -374,9 +380,11 @@ class Commando {
 	 * @return string
 	 */
 	public static function key_label( string $name ): string {
-		return Reporting::KEY_ORDERS === $name
-			? __( 'Professional translation (account email and Order API Key)', 'supertext-polylang' )
-			: __( 'AI translation (API key)', 'supertext-polylang' );
+		return match ( $name ) {
+			Reporting::KEY_ORDERS => __( 'Professional translation (account email and Order API Key)', 'supertext-polylang' ),
+			Reporting::KEY_SCREENSHOTS => __( 'Page screenshots (VibeBoost API key)', 'supertext-polylang' ),
+			default => __( 'AI translation (API key)', 'supertext-polylang' ),
+		};
 	}
 
 	/**
@@ -732,7 +740,7 @@ class Commando {
 	 *
 	 * @param KeyCheck $check The check.
 	 * @param bool     $html  Links as `<a>` (new tab), else bare URLs in brackets.
-	 * @param string   $key   Which key: Reporting::KEY_AI (default) or Reporting::KEY_ORDERS (own texts for rejected and missing).
+	 * @param string   $key   Which key: Reporting::KEY_AI (default), Reporting::KEY_ORDERS (own texts for rejected and missing) or Reporting::KEY_SCREENSHOTS (own texts).
 	 * @return array{type: string, text: string} `type`: success, error or warning (WordPress notice types).
 	 */
 	public static function message( KeyCheck $check, bool $html, string $key = Reporting::KEY_AI ): array {
@@ -743,6 +751,35 @@ class Commando {
 			: $text . ' (' . $url . ')';
 		$account_link = $link( $account, 'supertext.com' );
 		$api_link     = $link( $api, 'supertext.com → Integrations → API' );
+
+		if ( Reporting::KEY_SCREENSHOTS === $key ) {
+			$vibeboost = $link( 'https://vibeboost.me/account', __( 'VibeBoost account', 'supertext-polylang' ) );
+			switch ( $check->status ) {
+				case KeyCheck::OK:
+					return array(
+						'type' => 'success',
+						'text' => __( 'VibeBoost API key checked: page screenshots work.', 'supertext-polylang' ),
+					);
+				case KeyCheck::INVALID:
+				case KeyCheck::MISSING:
+					return array(
+						'type' => 'warning',
+						'text' => sprintf(
+							KeyCheck::INVALID === $check->status
+								/* translators: %s: "VibeBoost account" (a link). */
+								? __( 'VibeBoost rejected the API key, so orders are placed without page screenshots. Check the key or create a new one in your %s.', 'supertext-polylang' )
+								/* translators: %s: "VibeBoost account" (a link). */
+								: __( 'Page screenshots are on but no VibeBoost API key is set, so orders are placed without them. Create a key in your %s, or turn page screenshots off.', 'supertext-polylang' ),
+							$vibeboost
+						),
+					);
+				default:
+					return array(
+						'type' => 'warning',
+						'text' => __( 'The VibeBoost API key couldn\'t be checked: VibeBoost can\'t be reached or answered with an error. Check again later.', 'supertext-polylang' ),
+					);
+			}
+		}
 
 		if ( Reporting::KEY_ORDERS === $key && in_array( $check->status, array( KeyCheck::INVALID, KeyCheck::MISSING ), true ) ) {
 			$settings_link = $link( Settings::base_url() . 'services/customer/accountsettings', __( 'Supertext account settings', 'supertext-polylang' ) );

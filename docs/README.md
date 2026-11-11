@@ -213,8 +213,9 @@ another address.
 Exactly what is sent (as JSON to Supertext Plugin Health): the event (`installed`,
 `settings_saved`, `upgraded`, `api_key_check`, `extensions`), the site URL (`home_url()`), the plugin name
 (`supertext-wordpress-polylang`) and version, the WordPress version, the PHP version, the
-version of the bundled Supertext SDK, for each of the two keys (*AI translation* and, once you
-entered the account email or the Order API Key, *Professional orders*) whether it is set and the
+version of the bundled Supertext SDK, for each key (*AI translation*; once you entered the
+account email or the Order API Key, *Professional orders*; while page screenshots are on or a
+VibeBoost key is set, *Page screenshots (VibeBoost)*) whether it is set and the
 result of its latest check (`ok`, `invalid`, `missing`, `unreachable` or `error`, when it ran,
 Supertext's HTTP status and error code), and the address of the plugin's ping endpoint (below).
 Never the keys or the account email. Reports
@@ -260,8 +261,11 @@ changed: the **AI translation** API key (Polylang's settings) and, once you ente
 by reading the translation types, which costs nothing). An AI translation or an order that
 Supertext rejects marks its key as rejected. The results are kept and shown in the status panel
 of **Supertext → Settings** (one row per key, with the time of the check); the AI key's also in
-the Supertext section of Polylang's settings. **Test connection** in the status panel checks both
-again. The check runs whether or not version
+the Supertext section of Polylang's settings. **Test connection** in the status panel checks all
+of them again. The VibeBoost key is checked without capturing anything: a Pro capture
+(`fullPage=true`) of `https://supertext-key-check.invalid/`, so VibeBoost checks the key first
+(401/403: rejected) and a valid key's capture fails at once (*Screenshot failed*: ok); a real
+capture that VibeBoost answers with 401/403 also marks the key as rejected. The check runs whether or not version
 information is on; only the report depends on the setting.
 
 | Result | Message |
@@ -472,6 +476,9 @@ development).
 **Turning it on/off** — **Supertext → Settings → Page screenshots** (on by default). It
 depends on **Secret preview links** being enabled (same settings page); if that master switch
 is off, draft pages can't be captured.
+
+The VibeBoost key is checked like the Supertext keys and shown in the status panel (*API key
+check: Page screenshots*), and its status is reported to Supertext with the others.
 
 **Best‑effort** — attaching a screenshot never blocks an order. If VibeBoost is unreachable,
 your plan requires a subscription, or the site isn't publicly reachable from the internet, the

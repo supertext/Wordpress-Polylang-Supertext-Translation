@@ -23,6 +23,8 @@ class ReportingTest extends TestCase {
 	const KEY        = 'secret-key-123';
 	const ORDERS     = 'https://orders.example.test/';
 	const ORDER_KEY  = 'order-secret-456';
+	const VIBEBOOST  = 'https://shots.example.test/api/screenshot';
+	const SHOTS_KEY  = 'vibe_secret789';
 
 	/** @var array<int, HttpRequest> */
 	private $requests = array();
@@ -41,6 +43,9 @@ class ReportingTest extends TestCase {
 
 	/** @var bool */
 	private $orders_down = false;
+
+	/** @var array{0: int, 1: string}|null */
+	private $vibeboost = null;
 
 	private function transport(): HttpTransport {
 		return new class( $this ) implements HttpTransport {
@@ -71,6 +76,12 @@ class ReportingTest extends TestCase {
 			}
 			return new HttpResponse( $this->orders_status, '[]', array() );
 		}
+		if ( str_starts_with( $request->url, self::VIBEBOOST ) ) {
+			if ( null === $this->vibeboost ) {
+				throw new TransportException( 'timeout' );
+			}
+			return new HttpResponse( $this->vibeboost[0], $this->vibeboost[1], array() );
+		}
 		if ( str_starts_with( $request->url, self::API . 'features' ) ) {
 			return new HttpResponse( $this->features_status, 401 === $this->features_status ? '{"error_code":"UNAUTHORIZED"}' : '[]', array() );
 		}
@@ -94,6 +105,7 @@ class ReportingTest extends TestCase {
 			now: static fn() => 1791900000.0,
 			orders_base_url: self::ORDERS,
 			orders_service_id: 7,
+			screenshots_endpoint: self::VIBEBOOST,
 		);
 	}
 
@@ -291,6 +303,45 @@ class ReportingTest extends TestCase {
 		$this->assertStringNotContainsString( self::ORDER_KEY, (string) $this->stored );
 		$this->assertStringNotContainsString( 'shop@example.ch', (string) $this->stored );
 		$this->assertSame( KeyCheck::OK, $this->reporting()->last_check( Reporting::KEY_ORDERS )->status );
+	}
+
+	public function test_vibeboost_check_results_without_capturing_anything(): void {
+		$this->vibeboost = array( 500, '{"error":"Screenshot failed"}' );
+		$check           = $this->reporting()->check_screenshots( self::SHOTS_KEY );
+		$this->assertSame( KeyCheck::OK, $check->status, 'key accepted, the capture of the .invalid address failed' );
+		$request = end( $this->requests );
+		$this->assertSame( 'Bearer ' . self::SHOTS_KEY, $request->headers['Authorization'] );
+		$this->assertStringContainsString( 'url=' . rawurlencode( Reporting::SCREENSHOTS_PROBE_URL ), $request->url );
+		$this->assertStringContainsString( 'fullPage=true', $request->url );
+
+		$this->vibeboost = array( 401, '{"error":"Full-page capture is a Pro feature."}' );
+		$this->assertSame( KeyCheck::INVALID, $this->reporting()->check_screenshots( self::SHOTS_KEY )->status );
+		$this->vibeboost = array( 429, '{}' );
+		$this->assertSame( KeyCheck::OK, $this->reporting()->check_screenshots( self::SHOTS_KEY )->status );
+		$this->vibeboost = array( 502, 'Bad gateway' );
+		$this->assertSame( KeyCheck::UNREACHABLE, $this->reporting()->check_screenshots( self::SHOTS_KEY )->status );
+		$this->vibeboost = array( 400, '{}' );
+		$this->assertSame( KeyCheck::ERROR, $this->reporting()->check_screenshots( self::SHOTS_KEY )->status );
+		$this->vibeboost = null;
+		$this->assertSame( KeyCheck::UNREACHABLE, $this->reporting()->check_screenshots( self::SHOTS_KEY )->status );
+		$this->requests = array();
+		$this->assertSame( KeyCheck::MISSING, $this->reporting()->check_screenshots( ' ' )->status );
+		$this->assertSame( array(), $this->requests, 'no key: no request' );
+	}
+
+	public function test_the_vibeboost_key_is_reported_by_name_and_never_sent(): void {
+		$this->vibeboost = array( 500, '{"error":"Screenshot failed"}' );
+		$result          = $this->reporting()->after_settings_saved( Reporting::keys( self::KEY, '', '', self::SHOTS_KEY ) );
+
+		$this->assertSame( KeyCheck::OK, $result->checks[ Reporting::KEY_SCREENSHOTS ]->status );
+		$this->assertSame( array( 'AI translation', 'Page screenshots (VibeBoost)' ), array_column( $this->reports()[0]['api_keys'], 'name' ) );
+		foreach ( $this->requests as $request ) {
+			if ( self::REPORT_URL === $request->url ) {
+				$this->assertStringNotContainsString( self::SHOTS_KEY, (string) $request->body );
+			}
+		}
+		$this->assertStringNotContainsString( self::SHOTS_KEY, (string) $this->stored );
+		$this->assertArrayNotHasKey( Reporting::KEY_SCREENSHOTS, Reporting::keys( self::KEY, '', '' ), 'not used: not reported' );
 	}
 
 	public function test_orders_check_results(): void {

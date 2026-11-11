@@ -59,8 +59,31 @@ final class Reporting {
 	 *
 	 * @var string
 	 */
-	const KEY_AI     = 'AI translation';
-	const KEY_ORDERS = 'Professional orders';
+	const KEY_AI          = 'AI translation';
+	const KEY_ORDERS      = 'Professional orders';
+	const KEY_SCREENSHOTS = 'Page screenshots (VibeBoost)';
+
+	/**
+	 * Marks the VibeBoost key among the keys the checker gets (see screenshots_key()).
+	 *
+	 * @var string
+	 */
+	const SCREENSHOTS_PREFIX = "vibeboost\0";
+
+	/**
+	 * Seconds the VibeBoost check may take.
+	 *
+	 * @var int
+	 */
+	const SCREENSHOTS_TIMEOUT = 20;
+
+	/**
+	 * The address the VibeBoost check asks for: it can't exist (RFC 2606), so a valid key
+	 * gets an immediate "Screenshot failed" and nothing is captured.
+	 *
+	 * @var string
+	 */
+	const SCREENSHOTS_PROBE_URL = 'https://supertext-key-check.invalid/';
 
 	/**
 	 * Marks the professional-orders credentials among the keys the checker gets (see orders_key()).
@@ -113,6 +136,7 @@ final class Reporting {
 	 * @param (callable(): float)|null $now            Tests: wall-clock Unix seconds.
 	 * @param string                   $orders_base_url The order API's base URL (with trailing slash) for the professional-orders check.
 	 * @param int                      $orders_service_id The ServiceID whose order types the professional-orders check reads.
+	 * @param string                   $screenshots_endpoint VibeBoost's capture endpoint for the screenshots key check.
 	 */
 	public function __construct(
 		private readonly bool $enabled,
@@ -127,7 +151,8 @@ final class Reporting {
 		private readonly ?string $report_url = null,
 		?callable $now = null,
 		private readonly string $orders_base_url = 'https://www.supertext.com/',
-		private readonly int $orders_service_id = 1
+		private readonly int $orders_service_id = 1,
+		private readonly string $screenshots_endpoint = 'https://vibeboost.me/api/screenshot'
 	) {
 		$this->load = $load;
 		$this->save = $save;
@@ -169,18 +194,38 @@ final class Reporting {
 	 * The keys as Plugin Health gets them, by name: the AI key, and the professional-orders
 	 * credentials (email and Order API Key in one value, see orders_key()) when either is set.
 	 *
-	 * @param string $ai_key       The AI translation API key.
-	 * @param string $orders_email The account email of professional orders.
-	 * @param string $orders_key   The Order API Key.
+	 * and the VibeBoost key of page screenshots when it is given (null: page screenshots
+	 * are off and no key is set, so it isn't reported).
+	 *
+	 * @param string      $ai_key          The AI translation API key.
+	 * @param string      $orders_email    The account email of professional orders.
+	 * @param string      $orders_key      The Order API Key.
+	 * @param string|null $screenshots_key The VibeBoost API key ('' = missing), null = not used.
 	 * @return array<string, string>
 	 */
-	public static function keys( #[\SensitiveParameter] string $ai_key, string $orders_email, #[\SensitiveParameter] string $orders_key ): array {
+	public static function keys( #[\SensitiveParameter] string $ai_key, string $orders_email, #[\SensitiveParameter] string $orders_key, #[\SensitiveParameter] ?string $screenshots_key = null ): array {
 		$keys = array( self::KEY_AI => $ai_key );
 		if ( '' !== trim( $orders_email ) || '' !== trim( $orders_key ) ) {
 			$keys[ self::KEY_ORDERS ] = self::orders_key( $orders_email, $orders_key );
 		}
+		if ( null !== $screenshots_key ) {
+			$keys[ self::KEY_SCREENSHOTS ] = self::screenshots_key( $screenshots_key );
+		}
 
 		return $keys;
+	}
+
+	/**
+	 * The VibeBoost key as a key value: '' when missing (the check then says `missing`
+	 * without a request), else a marked value the checker recognizes. Never sent as such.
+	 *
+	 * @param string $api_key The VibeBoost API key.
+	 * @return string
+	 */
+	public static function screenshots_key( #[\SensitiveParameter] string $api_key ): string {
+		$api_key = trim( $api_key );
+
+		return '' === $api_key ? '' : self::SCREENSHOTS_PREFIX . $api_key;
 	}
 
 	/**
@@ -359,6 +404,60 @@ final class Reporting {
 	}
 
 	/**
+	 * Checks the VibeBoost key without capturing anything: a Pro capture (`fullPage`) of
+	 * an address that can't exist. VibeBoost checks the key first: 401/403 invalid; a
+	 * valid key gets past it and the capture fails at once ("Screenshot failed", 500),
+	 * which counts as ok, like 2xx and 429. No answer or another 5xx: unreachable.
+	 *
+	 * @param string $api_key The VibeBoost API key.
+	 * @return KeyCheck
+	 */
+	public function check_screenshots( #[\SensitiveParameter] string $api_key ): KeyCheck {
+		$now         = null !== $this->now ? ( $this->now )() : microtime( true );
+		$at          = KeyCheck::timestamp( $now );
+		$fingerprint = Protocol::apiKeyFingerprint( self::screenshots_key( $api_key ) );
+		if ( '' === trim( $api_key ) ) {
+			return new KeyCheck( KeyCheck::MISSING, $at, null, null, '' );
+		}
+		$separator = str_contains( $this->screenshots_endpoint, '?' ) ? '&' : '?';
+		try {
+			$response = $this->transport->send(
+				new HttpRequest(
+					'GET',
+					$this->screenshots_endpoint . $separator . http_build_query(
+						array(
+							'url'      => self::SCREENSHOTS_PROBE_URL,
+							'fullPage' => 'true',
+							'width'    => 320,
+						)
+					),
+					array(
+						'Authorization' => 'Bearer ' . trim( $api_key ),
+						'Accept'        => 'application/json',
+						'User-Agent'    => self::PLUGIN_NAME . '/' . $this->plugin_version,
+					),
+					null,
+					(float) self::SCREENSHOTS_TIMEOUT
+				)
+			);
+		} catch ( TransportException $e ) {
+			return new KeyCheck( KeyCheck::UNREACHABLE, $at, null, null, $fingerprint );
+		} catch ( \Throwable $e ) {
+			return new KeyCheck( KeyCheck::ERROR, $at, null, null, $fingerprint );
+		}
+		$status = $response->status;
+		$failed = 500 === $status && str_contains( (string) $response->body, 'Screenshot failed' );
+		$result = match ( true ) {
+			( $status >= 200 && $status < 300 ) || 429 === $status || $failed => KeyCheck::OK,
+			401 === $status || 403 === $status => KeyCheck::INVALID,
+			$status >= 500 => KeyCheck::UNREACHABLE,
+			default => KeyCheck::ERROR,
+		};
+
+		return new KeyCheck( $result, $at, $status, null, $fingerprint );
+	}
+
+	/**
 	 * Plugin Health's reporter with this installation's values; the key check is the
 	 * SDK's, against the Supertext environment chosen in the settings.
 	 *
@@ -379,6 +478,9 @@ final class Reporting {
 			systemName: self::SYSTEM_NAME,
 			keyChecker: new CallableKeyChecker(
 				function ( #[\SensitiveParameter] string $key ) use ( $base_url, $agent, $transport, $now ) {
+					if ( str_starts_with( $key, self::SCREENSHOTS_PREFIX ) ) {
+						return $this->check_screenshots( substr( $key, strlen( self::SCREENSHOTS_PREFIX ) ) );
+					}
 					if ( str_starts_with( $key, self::ORDERS_PREFIX ) ) {
 						list( $email, $order_key ) = explode( "\0", substr( $key, strlen( self::ORDERS_PREFIX ) ), 2 ) + array( '', '' );
 						return $this->check_orders( $email, $order_key );

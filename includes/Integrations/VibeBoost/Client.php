@@ -106,6 +106,10 @@ class Client {
 		}
 
 		$code = (int) wp_remote_retrieve_response_code( $response );
+		if ( 401 === $code || 403 === $code ) {
+			// The key was rejected: Plugin Health learns it with the other key checks.
+			\Supertext\Polylang\Reporting\Commando::authentication_failed( $code, \Supertext\Polylang\Reporting\Reporting::KEY_SCREENSHOTS );
+		}
 		if ( $code < 200 || $code >= 300 ) {
 			$this->debug_log( sprintf( 'HTTP %d for %s', $code, $url ) );
 			return new WP_Error(

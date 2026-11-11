@@ -539,6 +539,7 @@ Supertext offers AI and professional translation plugins for these systems:
 | Umbraco | [Umbraco-Supertext-Translation](https://github.com/Supertext/Umbraco-Supertext-Translation) | Umbraco package (NuGet) with a backoffice extension. | *Translate with Supertext* for pages, block lists and grids included |
 | Wagtail | [Wagtail-Supertext-Translation](https://github.com/Supertext/Wagtail-Supertext-Translation) | Python package: a machine translator for wagtail-localize. | Translates pages and snippets inside wagtail-localize's editor |
 | WordPress (Polylang) | [Wordpress-Polylang-Supertext-Translation](https://github.com/Supertext/Wordpress-Polylang-Supertext-Translation) | WordPress plugin: a machine-translation service for Polylang Pro, plus professional translation orders. | AI translation next to DeepL in Polylang, and human translation orders |
+| WordPress (WPML) | [Wordpress-WPML-Supertext-Translation](https://github.com/Supertext/Wordpress-WPML-Supertext-Translation) | WordPress plugin for WPML, with bulk actions in the posts and pages lists and a Supertext box in the editor. | AI translation into your WPML languages, professional translation orders and XLIFF/HTML translation files |
 
 ### Product information management (PIM)
 

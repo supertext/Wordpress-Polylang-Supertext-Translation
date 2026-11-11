@@ -289,7 +289,11 @@ Professional orders use a **separate** credential (HTTP Basic auth), configured 
 plugin's own settings page.
 
 1. Go to **Supertext → Settings → Translation Services (human)**.
-2. Choose the **Environment** (Live / Staging / Testing).
+2. Choose the **Environment** (Live / Staging / Testing). It is independent of the AI
+   translation's environment (in Polylang's Supertext section). On the server,
+   `SUPERTEXT_HUMAN_ENVIRONMENT` (else `SUPERTEXT_ENVIRONMENT`) and `SUPERTEXT_AI_ENVIRONMENT`
+   (`live`, `staging` or `testing`; wp-config.php constants or environment variables) win over
+   the two drop-downs, which then say so.
 3. Enter your **Account email** and **Order API Key** — find the Order API Key in your
    **[Supertext account settings](https://www.supertext.com/services/customer/accountsettings)** (the field links to it). No Supertext account yet?
    [Create one at supertext.com](https://www.supertext.com/person/en/account/signin).

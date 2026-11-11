@@ -159,8 +159,60 @@ class Settings {
 	 * @return string
 	 */
 	public static function environment(): string {
-		$env = self::get()['environment'];
+		$env = self::environment_override() ?? self::get()['environment'];
 		return isset( self::ENVIRONMENTS[ $env ] ) ? $env : 'live';
+	}
+
+	/**
+	 * The environment of professional orders set on the server, which wins over the
+	 * setting: SUPERTEXT_HUMAN_ENVIRONMENT, else SUPERTEXT_ENVIRONMENT (live, staging or
+	 * testing; wp-config.php constant or environment variable). Null when none is set.
+	 *
+	 * @return string|null
+	 */
+	public static function environment_override(): ?string {
+		foreach ( array( 'SUPERTEXT_HUMAN_ENVIRONMENT', 'SUPERTEXT_ENVIRONMENT' ) as $name ) {
+			$value = strtolower( self::server_value( $name ) );
+			if ( isset( self::ENVIRONMENTS[ $value ] ) ) {
+				return $value;
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * A server variable: the wp-config.php constant, else the environment variable ('' if neither).
+	 *
+	 * @param string $name Variable name.
+	 * @return string
+	 */
+	public static function server_value( string $name ): string {
+		if ( defined( $name ) ) {
+			return trim( (string) constant( $name ) );
+		}
+		$env = getenv( $name );
+
+		return false === $env ? '' : trim( $env );
+	}
+
+	/**
+	 * Prints "set by <variable> on the server" under a setting a server variable decides.
+	 *
+	 * @param string $name Variable name.
+	 * @return void
+	 */
+	public static function print_server_note( string $name ): void {
+		printf(
+			'<p class="description"><strong>%s</strong></p>',
+			esc_html(
+				sprintf(
+					/* translators: %s: name of the server variable, e.g. SUPERTEXT_AI_ENVIRONMENT. */
+					__( 'Set by %s on the server; change it there.', 'supertext-polylang' ),
+					$name
+				)
+			)
+		);
 	}
 
 	/**
@@ -230,12 +282,7 @@ class Settings {
 		if ( '' === $name ) {
 			return '';
 		}
-		if ( defined( $name ) ) {
-			return trim( (string) constant( $name ) );
-		}
-		$env = getenv( $name );
-
-		return false === $env ? '' : trim( $env );
+		return self::server_value( $name );
 	}
 
 	/**
@@ -367,7 +414,8 @@ class Settings {
 				<tr>
 					<th scope="row"><label for="supertext-environment"><?php esc_html_e( 'Environment', 'supertext-polylang' ); ?></label></th>
 					<td>
-						<select name="<?php echo esc_attr( self::OPTION . '[environment]' ); ?>" id="supertext-environment">
+						<?php $env_override = self::environment_override(); ?>
+						<select name="<?php echo esc_attr( self::OPTION . '[environment]' ); ?>" id="supertext-environment" <?php disabled( null !== $env_override ); ?>>
 							<?php
 							$labels = array(
 								'live'    => __( 'Live (www.supertext.com)', 'supertext-polylang' ),
@@ -376,12 +424,17 @@ class Settings {
 							);
 							foreach ( $labels as $value => $label ) :
 								?>
-								<option value="<?php echo esc_attr( $value ); ?>" <?php selected( $current['environment'], $value ); ?>>
+								<option value="<?php echo esc_attr( $value ); ?>" <?php selected( $env_override ?? $current['environment'], $value ); ?>>
 									<?php echo esc_html( $label ); ?>
 								</option>
 							<?php endforeach; ?>
 						</select>
 						<p class="description"><?php esc_html_e( 'Supertext environment used for professional (human) translation orders.', 'supertext-polylang' ); ?></p>
+						<?php
+						if ( null !== $env_override ) {
+							self::print_server_note( '' !== self::server_value( 'SUPERTEXT_HUMAN_ENVIRONMENT' ) && isset( self::ENVIRONMENTS[ strtolower( self::server_value( 'SUPERTEXT_HUMAN_ENVIRONMENT' ) ) ] ) ? 'SUPERTEXT_HUMAN_ENVIRONMENT' : 'SUPERTEXT_ENVIRONMENT' );
+						}
+						?>
 					</td>
 				</tr>
 				<tr>

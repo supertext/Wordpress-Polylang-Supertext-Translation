@@ -1021,3 +1021,6 @@ msgstr "La clé API VibeBoost n'a pas pu être vérifiée : VibeBoost est injoig
 
 msgid "The value from %s on the server is used while this field is empty."
 msgstr "Tant que ce champ est vide, la valeur de %s sur le serveur est utilisée."
+
+msgid "Set by %s on the server; change it there."
+msgstr "Défini par %s sur le serveur ; modifiez-le là-bas."

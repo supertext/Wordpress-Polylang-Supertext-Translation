@@ -223,6 +223,30 @@ class CommandoTest extends TestCase {
 		$this->assertSame( '', Settings::api_key() );
 	}
 
+	public function test_environments_set_on_the_server_win_over_the_settings(): void {
+		$this->options['supertext_polylang_settings'] = array( 'environment' => 'live' );
+		$this->assertNull( \Supertext\Polylang\Machine_Translation\Client::environment_override() );
+		$this->assertSame( 'live', Settings::environment() );
+		try {
+			putenv( 'SUPERTEXT_AI_ENVIRONMENT=Staging' );
+			putenv( 'SUPERTEXT_ENVIRONMENT=testing' );
+			$this->assertSame( \Supertext\Polylang\Machine_Translation\Client::ENVIRONMENTS['staging'], \Supertext\Polylang\Machine_Translation\Client::environment_override() );
+			$this->assertSame( 'testing', Settings::environment(), 'SUPERTEXT_ENVIRONMENT still works' );
+			putenv( 'SUPERTEXT_HUMAN_ENVIRONMENT=staging' );
+			$this->assertSame( 'staging', Settings::environment(), 'SUPERTEXT_HUMAN_ENVIRONMENT wins' );
+			$this->assertSame( Settings::ENVIRONMENTS['staging'], Settings::base_url() );
+			putenv( 'SUPERTEXT_AI_ENVIRONMENT=production' );
+			putenv( 'SUPERTEXT_HUMAN_ENVIRONMENT=nonsense' );
+			putenv( 'SUPERTEXT_ENVIRONMENT' );
+			$this->assertNull( \Supertext\Polylang\Machine_Translation\Client::environment_override(), 'unknown values are ignored' );
+			$this->assertSame( 'live', Settings::environment() );
+		} finally {
+			putenv( 'SUPERTEXT_AI_ENVIRONMENT' );
+			putenv( 'SUPERTEXT_HUMAN_ENVIRONMENT' );
+			putenv( 'SUPERTEXT_ENVIRONMENT' );
+		}
+	}
+
 	public function test_vibeboost_messages(): void {
 		$this->assertSame( 'success', Commando::message( new KeyCheck( KeyCheck::OK, '2026-10-14T08:00:00Z' ), false, Reporting::KEY_SCREENSHOTS )['type'] );
 		foreach ( array( KeyCheck::INVALID, KeyCheck::MISSING ) as $status ) {

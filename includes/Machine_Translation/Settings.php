@@ -211,15 +211,20 @@ class Settings implements Settings_Interface {
 		<tr>
 			<th scope="row"><label for="pll-supertext-endpoint"><?php esc_html_e( 'Environment', 'supertext-polylang' ); ?></label></th>
 			<td>
-				<select name="<?php echo esc_attr( $this->input_base_name . '[endpoint]' ); ?>" id="pll-supertext-endpoint">
+				<select name="<?php echo esc_attr( $this->input_base_name . '[endpoint]' ); ?>" id="pll-supertext-endpoint" <?php disabled( null !== Client::environment_override() ); ?>>
 					<?php foreach ( Client::ENVIRONMENTS as $key => $url ) : ?>
-						<?php $is_selected = ( $endpoint === $url ) || ( '' === $endpoint && 'live' === $key ); ?>
+						<?php $is_selected = null !== Client::environment_override() ? Client::environment_override() === $url : ( ( $endpoint === $url ) || ( '' === $endpoint && 'live' === $key ) ); ?>
 						<option value="<?php echo esc_attr( $url ); ?>" <?php selected( $is_selected, true ); ?>>
 							<?php echo esc_html( ucfirst( $key ) . ' (' . preg_replace( '#^https?://#', '', rtrim( $url, '/' ) ) . ')' ); ?>
 						</option>
 					<?php endforeach; ?>
 				</select>
 				<p class="description"><?php esc_html_e( 'Supertext environment for AI machine translation.', 'supertext-polylang' ); ?></p>
+						<?php
+						if ( null !== Client::environment_override() ) {
+							\Supertext\Polylang\Admin\Settings::print_server_note( 'SUPERTEXT_AI_ENVIRONMENT' );
+						}
+						?>
 			</td>
 		</tr>
 		<?php

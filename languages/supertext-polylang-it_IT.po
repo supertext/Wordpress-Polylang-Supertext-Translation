@@ -1021,3 +1021,6 @@ msgstr "Non è stato possibile verificare la chiave API VibeBoost: VibeBoost non
 
 msgid "The value from %s on the server is used while this field is empty."
 msgstr "Finché questo campo è vuoto, viene usato il valore di %s sul server."
+
+msgid "Set by %s on the server; change it there."
+msgstr "Impostato da %s sul server; lo modifichi lì."

@@ -183,7 +183,7 @@ class Commando {
 	public static function reporting( ?string $endpoint = null, ?bool $enabled = null, ?string $orders_base_url = null ): Reporting {
 		$site_url = self::site_url();
 		$service  = self::service_options();
-		$endpoint = $endpoint ?? (string) ( $service['endpoint'] ?? '' );
+		$endpoint = \Supertext\Polylang\Machine_Translation\Client::environment_override() ?? $endpoint ?? (string) ( $service['endpoint'] ?? '' );
 		$endpoint = '' !== trim( $endpoint ) ? $endpoint : Protocol::LIVE_BASE_URL;
 		/** @var string $endpoint */
 		$endpoint = apply_filters( 'supertext_polylang_endpoint', $endpoint, $service );
@@ -637,7 +637,7 @@ class Commando {
 		}
 		$enabled = is_array( $value ) && array_key_exists( 'version_reports', $value ) ? (bool) $value['version_reports'] : null;
 		$env     = is_array( $value ) ? (string) ( $value['environment'] ?? '' ) : '';
-		$base    = Settings::ENVIRONMENTS[ $env ] ?? null;
+		$base    = Settings::ENVIRONMENTS[ Settings::environment_override() ?? $env ] ?? null;
 		$result  = self::save_and_report( self::keys( null, is_array( $value ) ? $value : null ), null, $enabled, $base );
 		if ( null !== $result && function_exists( 'add_settings_error' ) ) {
 			foreach ( self::checks_of( $result ) as $name => $check ) {

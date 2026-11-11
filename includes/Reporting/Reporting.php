@@ -191,9 +191,8 @@ final class Reporting {
 	}
 
 	/**
-	 * The keys as Plugin Health gets them, by name: the AI key, and the professional-orders
-	 * credentials (email and Order API Key in one value, see orders_key()) when either is set.
-	 *
+	 * The keys as Plugin Health gets them, by name: the AI key, the professional-orders
+	 * credentials (email and Order API Key in one value, see orders_key(); '' = missing)
 	 * and the VibeBoost key of page screenshots when it is given (null: page screenshots
 	 * are off and no key is set, so it isn't reported).
 	 *
@@ -204,10 +203,11 @@ final class Reporting {
 	 * @return array<string, string>
 	 */
 	public static function keys( #[\SensitiveParameter] string $ai_key, string $orders_email, #[\SensitiveParameter] string $orders_key, #[\SensitiveParameter] ?string $screenshots_key = null ): array {
-		$keys = array( self::KEY_AI => $ai_key );
-		if ( '' !== trim( $orders_email ) || '' !== trim( $orders_key ) ) {
-			$keys[ self::KEY_ORDERS ] = self::orders_key( $orders_email, $orders_key );
-		}
+		// The professional-orders credentials are always reported: missing until both are set.
+		$keys = array(
+			self::KEY_AI     => $ai_key,
+			self::KEY_ORDERS => self::orders_key( $orders_email, $orders_key ),
+		);
 		if ( null !== $screenshots_key ) {
 			$keys[ self::KEY_SCREENSHOTS ] = self::screenshots_key( $screenshots_key );
 		}

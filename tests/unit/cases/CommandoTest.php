@@ -197,6 +197,32 @@ class CommandoTest extends TestCase {
 		$this->assertStringContainsString( rawurlencode( Reporting::SCREENSHOTS_PROBE_URL ), $vibeboost[0]->url );
 	}
 
+	public function test_server_variables_are_used_while_the_fields_are_empty(): void {
+		putenv( 'SUPERTEXT_ACCOUNT_EMAIL=env@example.ch' );
+		putenv( 'SUPERTEXT_ORDER_API_KEY=env-order-key' );
+		putenv( 'VIBEBOOST_API_KEY=vibe_env' );
+		try {
+			$this->options['supertext_polylang_settings'] = array( 'human_email' => '', 'screenshots_enabled' => true );
+			$this->assertSame( 'env@example.ch', Settings::email() );
+			$this->assertSame( 'env-order-key', Settings::api_key() );
+			$this->assertSame( 'vibe_env', Settings::screenshots_api_key() );
+			$keys = Commando::keys();
+			$this->assertSame( Reporting::orders_key( 'env@example.ch', 'env-order-key' ), $keys[ Reporting::KEY_ORDERS ] );
+			$this->assertSame( Reporting::screenshots_key( 'vibe_env' ), $keys[ Reporting::KEY_SCREENSHOTS ] );
+
+			// A value in the field wins; the settings being saved fall back the same way.
+			$this->options['supertext_polylang_settings'] = array( 'human_email' => 'shop@example.ch' );
+			$this->assertSame( 'shop@example.ch', Settings::email() );
+			$this->assertSame( Reporting::orders_key( 'shop@example.ch', 'env-order-key' ), Commando::keys( null, array( 'human_email' => 'shop@example.ch' ) )[ Reporting::KEY_ORDERS ] );
+		} finally {
+			putenv( 'SUPERTEXT_ACCOUNT_EMAIL' );
+			putenv( 'SUPERTEXT_ORDER_API_KEY' );
+			putenv( 'VIBEBOOST_API_KEY' );
+		}
+		$this->options['supertext_polylang_settings'] = array();
+		$this->assertSame( '', Settings::api_key() );
+	}
+
 	public function test_vibeboost_messages(): void {
 		$this->assertSame( 'success', Commando::message( new KeyCheck( KeyCheck::OK, '2026-10-14T08:00:00Z' ), false, Reporting::KEY_SCREENSHOTS )['type'] );
 		foreach ( array( KeyCheck::INVALID, KeyCheck::MISSING ) as $status ) {

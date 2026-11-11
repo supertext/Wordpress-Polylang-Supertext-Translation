@@ -52,6 +52,19 @@ class Settings {
 	const DEFAULT_SERVICE_ID = 46;
 
 	/**
+	 * Server variables (wp-config.php constant, else environment variable) used while
+	 * their field is empty, like SUPERTEXT_API_KEY for the AI key: so a host such as
+	 * Railway can provide the credentials without anyone typing them in.
+	 *
+	 * @var array<string, string>
+	 */
+	const FALLBACKS = array(
+		'human_email'         => 'SUPERTEXT_ACCOUNT_EMAIL',
+		'human_api_key'       => 'SUPERTEXT_ORDER_API_KEY',
+		'screenshots_api_key' => 'VIBEBOOST_API_KEY',
+	);
+
+	/**
 	 * Registers the setting.
 	 *
 	 * @return void
@@ -190,7 +203,63 @@ class Settings {
 	 * @return string
 	 */
 	public static function email(): string {
-		return (string) self::get()['human_email'];
+		return self::resolved( self::get(), 'human_email' );
+	}
+
+	/**
+	 * A field's value, or its server variable's (FALLBACKS) while the field is empty.
+	 *
+	 * @param array<string, mixed> $values The settings (stored or being saved).
+	 * @param string               $field  human_email, human_api_key or screenshots_api_key.
+	 * @return string
+	 */
+	public static function resolved( array $values, string $field ): string {
+		$value = trim( (string) ( $values[ $field ] ?? '' ) );
+
+		return '' !== $value ? $value : self::fallback( $field );
+	}
+
+	/**
+	 * The server variable's value for a field ('' if it has none or it isn't set).
+	 *
+	 * @param string $field Field name.
+	 * @return string
+	 */
+	public static function fallback( string $field ): string {
+		$name = self::FALLBACKS[ $field ] ?? '';
+		if ( '' === $name ) {
+			return '';
+		}
+		if ( defined( $name ) ) {
+			return trim( (string) constant( $name ) );
+		}
+		$env = getenv( $name );
+
+		return false === $env ? '' : trim( $env );
+	}
+
+	/**
+	 * Prints "the value from <variable> on the server is used" under a field that is
+	 * empty while its server variable is set.
+	 *
+	 * @param array<string, mixed> $current The stored settings.
+	 * @param string               $field   Field name.
+	 * @return void
+	 */
+	private static function print_fallback_note( array $current, string $field ): void {
+		if ( '' !== trim( (string) ( $current[ $field ] ?? '' ) ) || '' === self::fallback( $field ) ) {
+			return;
+		}
+		printf(
+			'<p class="description"><strong>%s</strong></p>',
+			esc_html(
+				sprintf(
+					/* translators: %s: name of the server variable, e.g. SUPERTEXT_ORDER_API_KEY. */
+					__( 'The value from %s on the server is used while this field is empty.', 'supertext-polylang' ),
+					self::FALLBACKS[ $field ]
+				)
+			)
+		);
 	}
 
 	/**
@@ -199,7 +268,7 @@ class Settings {
 	 * @return string
 	 */
 	public static function api_key(): string {
-		return (string) self::get()['human_api_key'];
+		return self::resolved( self::get(), 'human_api_key' );
 	}
 
 	/**
@@ -261,7 +330,7 @@ class Settings {
 	 * @return string
 	 */
 	public static function screenshots_api_key(): string {
-		return (string) self::get()['screenshots_api_key'];
+		return self::resolved( self::get(), 'screenshots_api_key' );
 	}
 
 	/**
@@ -327,6 +396,7 @@ class Settings {
 							value="<?php echo esc_attr( $current['human_email'] ); ?>"
 						/>
 						<p class="description"><?php esc_html_e( 'The email (username) of your Supertext account.', 'supertext-polylang' ); ?></p>
+						<?php self::print_fallback_note( $current, 'human_email' ); ?>
 					</td>
 				</tr>
 				<tr>
@@ -358,6 +428,7 @@ class Settings {
 							); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- link built from escaped parts.
 							?>
 						</p>
+						<?php self::print_fallback_note( $current, 'human_api_key' ); ?>
 					</td>
 				</tr>
 				<tr>
@@ -480,6 +551,7 @@ class Settings {
 							); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- link built from escaped parts.
 							?>
 						</p>
+						<?php self::print_fallback_note( $current, 'screenshots_api_key' ); ?>
 					</td>
 				</tr>
 				<tr>

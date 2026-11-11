@@ -213,8 +213,8 @@ another address.
 Exactly what is sent (as JSON to Supertext Plugin Health): the event (`installed`,
 `settings_saved`, `upgraded`, `api_key_check`, `extensions`), the site URL (`home_url()`), the plugin name
 (`supertext-wordpress-polylang`) and version, the WordPress version, the PHP version, the
-version of the bundled Supertext SDK, for each key (*AI translation*; once you entered the
-account email or the Order API Key, *Professional orders*; while page screenshots are on or a
+version of the bundled Supertext SDK, for each key (*AI translation*; *Professional orders*,
+`missing` until both the account email and the Order API Key are set; while page screenshots are on or a
 VibeBoost key is set, *Page screenshots (VibeBoost)*) whether it is set and the
 result of its latest check (`ok`, `invalid`, `missing`, `unreachable` or `error`, when it ran,
 Supertext's HTTP status and error code), and the address of the plugin's ping endpoint (below).
@@ -293,6 +293,10 @@ plugin's own settings page.
 3. Enter your **Account email** and **Order API Key** — find the Order API Key in your
    **[Supertext account settings](https://www.supertext.com/services/customer/accountsettings)** (the field links to it). No Supertext account yet?
    [Create one at supertext.com](https://www.supertext.com/person/en/account/signin).
+   On a host with server variables (e.g. Railway) you can leave both fields empty and set
+   `SUPERTEXT_ACCOUNT_EMAIL` and `SUPERTEXT_ORDER_API_KEY` instead (wp-config.php constants or
+   environment variables); they are used while the fields are empty, and the fields say so.
+   The VibeBoost key of page screenshots works the same way with `VIBEBOOST_API_KEY`.
 4. Leave **ServiceID** at **46** unless Supertext told you otherwise. It selects which
    service's translation types are offered in the **Translation type** dropdown; the list
    is loaded live from your Supertext account (see

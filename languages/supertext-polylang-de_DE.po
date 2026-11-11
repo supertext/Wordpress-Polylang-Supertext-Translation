@@ -1018,3 +1018,6 @@ msgstr "Seiten-Screenshots sind eingeschaltet, aber es ist kein VibeBoost-API-Sc
 
 msgid "The VibeBoost API key couldn't be checked: VibeBoost can't be reached or answered with an error. Check again later."
 msgstr "Der VibeBoost-API-Schlüssel konnte nicht geprüft werden: VibeBoost ist nicht erreichbar oder hat mit einem Fehler geantwortet. Prüfen Sie es später erneut."
+
+msgid "The value from %s on the server is used while this field is empty."
+msgstr "Solange dieses Feld leer ist, wird der Wert aus %s auf dem Server verwendet."

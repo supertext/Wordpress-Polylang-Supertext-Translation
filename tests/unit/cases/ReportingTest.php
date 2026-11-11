@@ -274,10 +274,11 @@ class ReportingTest extends TestCase {
 		$this->assertFalse( Reporting::forced_by_environment() );
 	}
 
-	public function test_keys_report_professional_orders_only_once_either_credential_is_set(): void {
-		$this->assertSame( array( Reporting::KEY_AI ), array_keys( Reporting::keys( self::KEY, ' ', '' ) ) );
-		$this->assertSame( array( Reporting::KEY_AI, Reporting::KEY_ORDERS ), array_keys( Reporting::keys( self::KEY, 'shop@example.ch', '' ) ) );
+	public function test_keys_always_report_professional_orders_missing_until_both_credentials_are_set(): void {
+		$this->assertSame( array( Reporting::KEY_AI, Reporting::KEY_ORDERS ), array_keys( Reporting::keys( self::KEY, ' ', '' ) ) );
+		$this->assertSame( '', Reporting::keys( self::KEY, ' ', '' )[ Reporting::KEY_ORDERS ], 'none set: missing' );
 		$this->assertSame( '', Reporting::keys( self::KEY, 'shop@example.ch', '' )[ Reporting::KEY_ORDERS ], 'half the credentials: missing' );
+		$this->assertNotSame( '', Reporting::keys( self::KEY, 'shop@example.ch', self::ORDER_KEY )[ Reporting::KEY_ORDERS ] );
 	}
 
 	public function test_both_keys_are_checked_and_reported_by_name_and_never_sent(): void {
@@ -334,7 +335,7 @@ class ReportingTest extends TestCase {
 		$result          = $this->reporting()->after_settings_saved( Reporting::keys( self::KEY, '', '', self::SHOTS_KEY ) );
 
 		$this->assertSame( KeyCheck::OK, $result->checks[ Reporting::KEY_SCREENSHOTS ]->status );
-		$this->assertSame( array( 'AI translation', 'Page screenshots (VibeBoost)' ), array_column( $this->reports()[0]['api_keys'], 'name' ) );
+		$this->assertSame( array( 'AI translation', 'Professional orders', 'Page screenshots (VibeBoost)' ), array_column( $this->reports()[0]['api_keys'], 'name' ) );
 		foreach ( $this->requests as $request ) {
 			if ( self::REPORT_URL === $request->url ) {
 				$this->assertStringNotContainsString( self::SHOTS_KEY, (string) $request->body );

@@ -1018,3 +1018,6 @@ msgstr "Les captures d'écran des pages sont activées, mais aucune clé API Vib
 
 msgid "The VibeBoost API key couldn't be checked: VibeBoost can't be reached or answered with an error. Check again later."
 msgstr "La clé API VibeBoost n'a pas pu être vérifiée : VibeBoost est injoignable ou a répondu par une erreur. Vérifiez à nouveau plus tard."
+
+msgid "The value from %s on the server is used while this field is empty."
+msgstr "Tant que ce champ est vide, la valeur de %s sur le serveur est utilisée."

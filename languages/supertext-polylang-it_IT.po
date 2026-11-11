@@ -1018,3 +1018,6 @@ msgstr "Gli screenshot delle pagine sono attivi, ma non è impostata alcuna chia
 
 msgid "The VibeBoost API key couldn't be checked: VibeBoost can't be reached or answered with an error. Check again later."
 msgstr "Non è stato possibile verificare la chiave API VibeBoost: VibeBoost non è raggiungibile o ha risposto con un errore. Verifichi di nuovo più tardi."
+
+msgid "The value from %s on the server is used while this field is empty."
+msgstr "Finché questo campo è vuoto, viene usato il valore di %s sul server."

@@ -228,12 +228,12 @@ class Commando {
 	 */
 	public static function keys( ?string $ai_key = null, ?array $own = null ): array {
 		$shots_on  = null !== $own ? ! empty( $own['screenshots_enabled'] ) : Settings::screenshots_enabled();
-		$shots_key = null !== $own ? (string) ( $own['screenshots_api_key'] ?? '' ) : Settings::screenshots_api_key();
+		$shots_key = null !== $own ? Settings::resolved( $own, 'screenshots_api_key' ) : Settings::screenshots_api_key();
 
 		return Reporting::keys(
 			$ai_key ?? self::api_key(),
-			null !== $own ? (string) ( $own['human_email'] ?? '' ) : Settings::email(),
-			null !== $own ? (string) ( $own['human_api_key'] ?? '' ) : Settings::api_key(),
+			null !== $own ? Settings::resolved( $own, 'human_email' ) : Settings::email(),
+			null !== $own ? Settings::resolved( $own, 'human_api_key' ) : Settings::api_key(),
 			$shots_on || '' !== trim( $shots_key ) ? $shots_key : null
 		);
 	}

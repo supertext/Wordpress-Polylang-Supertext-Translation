@@ -11,12 +11,12 @@ use Supertext\Polylang\Admin\Settings;
 
 /**
  * The human translation product types ("Translation type" dropdown) offered by the
- * configured Supertext ServiceID.
+ * configured Supertext ServiceId.
  *
- * The list is loaded from `GET api/v1/util/ordertype/{ServiceID}` and cached in a
+ * The list is loaded from `GET api/v1/util/ordertype/{ServiceId}` and cached in a
  * transient, so the dropdowns never pay for an HTTP round-trip on every admin page
  * load. Because the list gates ordering, a failed fetch must not empty the dropdown:
- * {@see Services::FALLBACK} (the three types of the default ServiceID 46) is used
+ * {@see Services::FALLBACK} (the three types of the default ServiceId 46) is used
  * instead, cached briefly so the next page load retries soon.
  *
  * Entries are keyed by `OrderTypeConfigurationId` — the id sent as the order's
@@ -26,7 +26,7 @@ use Supertext\Polylang\Admin\Settings;
  * @since 0.11.0
  */
 class Services {
-	/** Transient key prefix (one entry per environment + ServiceID). */
+	/** Transient key prefix (one entry per environment + ServiceId). */
 	const CACHE_PREFIX = 'supertext_polylang_order_types_';
 
 	/** How long a successful fetch is cached (12 hours). */
@@ -38,7 +38,7 @@ class Services {
 	/**
 	 * Fallback product types, used when the API cannot be reached.
 	 *
-	 * These are the three types of the default ServiceID 46. Keyed by
+	 * These are the three types of the default ServiceId 46. Keyed by
 	 * OrderTypeConfigurationId; `order_type_id` is the matching OrderTypeId.
 	 *
 	 * @var array<int, array{label: string, order_type_id: int, description: string, short: string}>
@@ -78,7 +78,7 @@ class Services {
 	 * @return void
 	 */
 	public static function init(): void {
-		// Saving the settings may change the environment or the ServiceID: drop the
+		// Saving the settings may change the environment or the ServiceId: drop the
 		// cached list for the old *and* the new combination.
 		add_action( 'update_option_' . Settings::OPTION, array( self::class, 'on_settings_saved' ), 10, 2 );
 	}
@@ -128,7 +128,7 @@ class Services {
 		 *
 		 * @param array $services   Entries keyed by OrderTypeConfigurationId, each
 		 *                          with `label`, `order_type_id`, `description`, `short`.
-		 * @param int   $service_id The Supertext ServiceID the list was loaded for.
+		 * @param int   $service_id The Supertext ServiceId the list was loaded for.
 		 */
 		self::$memo[ $key ] = apply_filters( 'supertext_polylang_human_services', $services, $service_id );
 
@@ -194,7 +194,7 @@ class Services {
 		}
 
 		// An order placed with a type that is no longer offered (or a changed
-		// ServiceID) still has to render on the Orders page.
+		// ServiceId) still has to render on the Orders page.
 		return (string) ( self::FALLBACK[ $config_id ]['label'] ?? $config_id );
 	}
 
@@ -213,7 +213,7 @@ class Services {
 	/**
 	 * Drops the cached list, so the next read re-fetches it.
 	 *
-	 * @param int|null    $service_id ServiceID to flush (default: the configured one).
+	 * @param int|null    $service_id ServiceId to flush (default: the configured one).
 	 * @param string|null $env        Environment slug (default: the configured one).
 	 * @return void
 	 */
@@ -246,13 +246,13 @@ class Services {
 	}
 
 	/**
-	 * Builds the transient key for an environment + ServiceID pair.
+	 * Builds the transient key for an environment + ServiceId pair.
 	 *
 	 * The language is part of the key: the API returns the type names and
 	 * descriptions in the language of the Accept-Language header, so a German and
 	 * a French admin must not share one cached list.
 	 *
-	 * @param int         $service_id The Supertext ServiceID.
+	 * @param int         $service_id The Supertext ServiceId.
 	 * @param string|null $env        Environment slug (default: the configured one).
 	 * @return string
 	 */

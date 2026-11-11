@@ -44,7 +44,7 @@ class Settings {
 	);
 
 	/**
-	 * Default Supertext ServiceID — the order-type group whose translation types
+	 * Default Supertext ServiceId — the order-type group whose translation types
 	 * (BASIC / PREMIUM / CREATIVE) are offered when ordering.
 	 *
 	 * @var int
@@ -126,7 +126,7 @@ class Settings {
 		$out['human_email']   = sanitize_email( (string) ( $input['human_email'] ?? '' ) );
 		$out['human_api_key'] = sanitize_text_field( (string) ( $input['human_api_key'] ?? '' ) );
 
-		// A blank or nonsensical ServiceID would empty the translation-type dropdown.
+		// A blank or nonsensical ServiceId would empty the translation-type dropdown.
 		$service_id        = (int) ( $input['service_id'] ?? 0 );
 		$out['service_id'] = $service_id > 0 ? $service_id : self::DEFAULT_SERVICE_ID;
 
@@ -319,7 +319,7 @@ class Settings {
 	}
 
 	/**
-	 * Returns the configured Supertext ServiceID (order-type group).
+	 * Returns the configured Supertext ServiceId (order-type group).
 	 *
 	 * @return int
 	 */
@@ -467,7 +467,7 @@ class Settings {
 							<?php
 							printf(
 								/* translators: 1: link to the Supertext account settings page, 2: link to create a Supertext account (or log in). */
-								esc_html__( 'Your Supertext "Order API Key" (used with the account email, via HTTP Basic auth, for order requests). Find it in your %1$s. No Supertext account yet? Create one at %2$s.', 'supertext-polylang' ),
+								esc_html__( 'Your Supertext “Order API Key” (used with the account email, via HTTP Basic auth, for order requests). Find it in your %1$s. No Supertext account yet? Create one at %2$s.', 'supertext-polylang' ),
 								sprintf(
 									'<a href="%s" target="_blank" rel="noopener">%s</a>',
 									esc_url( self::base_url() . 'services/customer/accountsettings' ),
@@ -485,7 +485,7 @@ class Settings {
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><label for="supertext-service-id"><?php esc_html_e( 'ServiceID', 'supertext-polylang' ); ?></label></th>
+					<th scope="row"><label for="supertext-service-id"><?php esc_html_e( 'ServiceId', 'supertext-polylang' ); ?></label></th>
 					<td>
 						<input
 							name="<?php echo esc_attr( self::OPTION . '[service_id]' ); ?>"
@@ -499,7 +499,7 @@ class Settings {
 						<p class="description">
 							<?php
 							printf(
-								/* translators: %d is the default ServiceID. */
+								/* translators: %d is the default ServiceId. */
 								esc_html__( 'The Supertext ServiceId for your translation services that are offered when ordering a human translation. Default %d. The list is cached for 12 hours.', 'supertext-polylang' ),
 								(int) self::DEFAULT_SERVICE_ID
 							);
@@ -547,7 +547,7 @@ class Settings {
 							<?php esc_html_e( 'Enable secret public preview links for unpublished posts/pages', 'supertext-polylang' ); ?>
 						</label>
 						<p class="description">
-							<?php esc_html_e( 'Master switch for the "Public preview link" box on the post/page editor: a private, expiring URL that shows an unpublished draft without logging in. When off, the box is hidden and any existing links stop working. Page screenshots (below) rely on this to capture draft pages.', 'supertext-polylang' ); ?>
+							<?php esc_html_e( 'Master switch for the “Public preview link” box on the post/page editor: a private, expiring URL that shows an unpublished draft without logging in. When off, the box is hidden and any existing links stop working. Page screenshots (below) rely on this to capture draft pages.', 'supertext-polylang' ); ?>
 						</p>
 					</td>
 				</tr>
@@ -595,7 +595,7 @@ class Settings {
 							<?php
 							printf(
 								/* translators: %s is a link to the VibeBoost account/API-keys page. */
-								esc_html__( 'Your personal VibeBoost API key (starts with "vibe_"). Required for page screenshots — the capture options the plugin uses need an authenticated key. Create one in your %s.', 'supertext-polylang' ),
+								esc_html__( 'Your personal VibeBoost API key (starts with “vibe_”). Required for page screenshots — the capture options the plugin uses need an authenticated key. Create one in your %s.', 'supertext-polylang' ),
 								sprintf(
 									'<a href="%s" target="_blank" rel="noopener">%s</a>',
 									esc_url( 'https://vibeboost.me/account' ),

@@ -101,7 +101,7 @@ class Tools_Page {
 		}
 		?>
 		<p class="description" style="max-width:720px;">
-			<?php esc_html_e( 'Translation setting per ACF field, as configured for Polylang. “Translate” / “Translate once” fields are sent for translation; “Copy”, “Synchronize” and “Ignore” fields are not. Set this in the ACF field group editor (each field’s “Translation” option).', 'supertext-polylang' ); ?>
+			<?php esc_html_e( 'Translation setting per ACF field, as configured for Polylang. “Translate” / “Translate once” fields are sent for translation; “Copy”, “Synchronize” and “Ignore” fields are not. Set this in the ACF field group editor (each field\'s “Translation” option).', 'supertext-polylang' ); ?>
 		</p>
 		<table class="widefat striped" style="max-width:960px;">
 			<thead>

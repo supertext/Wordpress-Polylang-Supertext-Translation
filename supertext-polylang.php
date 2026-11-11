@@ -157,7 +157,7 @@ add_filter(
 // General "String Translation" page over all Polylang strings (Supertext submenu).
 \Supertext\Polylang\Admin\String_Translations_Page::init();
 
-// Human translation product types, loaded from the configured Supertext ServiceID
+// Human translation product types, loaded from the configured Supertext ServiceId
 // (flushes its cache when the settings change).
 \Supertext\Polylang\Human_Translation\Services::init();
 
@@ -233,7 +233,7 @@ add_action(
 		) ) {
 			printf(
 				'<div class="notice notice-warning"><p>%s <a href="%s">%s</a></p></div>',
-				esc_html__( 'Supertext for Polylang: Polylang Pro is active but has not been patched to expose the "pll_mt_services" filter, so Supertext cannot register as a translation service yet.', 'supertext-polylang' ),
+				esc_html__( 'Supertext for Polylang: Polylang Pro is active but has not been patched to expose the “pll_mt_services” filter, so Supertext cannot register as a translation service yet.', 'supertext-polylang' ),
 				esc_url( admin_url( 'admin.php?page=' . \Supertext\Polylang\Admin\Page::SLUG ) ),
 				esc_html__( 'Patch Polylang now →', 'supertext-polylang' )
 			);

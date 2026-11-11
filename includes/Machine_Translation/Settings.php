@@ -219,7 +219,7 @@ class Settings implements Settings_Interface {
 						</option>
 					<?php endforeach; ?>
 				</select>
-				<p class="description"><?php esc_html_e( 'Supertext environment for AI machine translation.', 'supertext-polylang' ); ?></p>
+				<p class="description"><?php esc_html_e( 'Supertext environment for AI translation.', 'supertext-polylang' ); ?></p>
 						<?php
 						if ( null !== Client::environment_override() ) {
 							\Supertext\Polylang\Admin\Settings::print_server_note( 'SUPERTEXT_AI_ENVIRONMENT' );
@@ -259,7 +259,7 @@ class Settings implements Settings_Interface {
 			<th scope="row"><?php esc_html_e( 'Language mapping', 'supertext-polylang' ); ?></th>
 			<td>
 				<p class="description" style="margin-bottom:8px;">
-					<?php esc_html_e( 'Choose the Supertext language for each Polylang language. The suggested language is preselected: the one whose code equals the locale (de_CH → de-CH), else the usual one (de → de-DE, es_ES → es, de_DE_formal → de-DE). Languages without a suggestion, such as en_IE or gsw, show "— choose —"; until you choose one, translations into or from them stop with an error and nothing is sent to Supertext.', 'supertext-polylang' ); ?>
+					<?php esc_html_e( 'Choose the Supertext language for each Polylang language. The suggested language is preselected: the one whose code equals the locale (de_CH → de-CH), else the usual one (de → de-DE, es_ES → es, de_DE_formal → de-DE). Languages without a suggestion, such as en_IE or gsw, show “— choose —”; until you choose one, translations into or from them stop with an error and nothing is sent to Supertext.', 'supertext-polylang' ); ?>
 				</p>
 				<table class="widefat striped supertext-language-mapping" style="max-width:860px;">
 					<thead>
@@ -358,7 +358,7 @@ class Settings implements Settings_Interface {
 					</tbody>
 				</table>
 				<p class="description" style="margin-top:8px;">
-					<?php esc_html_e( 'Formality is offered only for the languages where Supertext supports it. It is preselected as formal for locales ending in _formal and informal for _informal; "Automatic" lets Supertext decide.', 'supertext-polylang' ); ?>
+					<?php esc_html_e( 'Formality is offered only for the languages where Supertext supports it. It is preselected as formal for locales ending in _formal and informal for _informal; “Automatic” lets Supertext decide.', 'supertext-polylang' ); ?>
 				</p>
 				<p class="description">
 					<?php esc_html_e( 'Translation review: translations into a language with this box ticked go through Supertext\'s review service, so reviewers can check and correct them on the website with the Supertext Localization Review extension. Their corrections are used the next time the content is translated.', 'supertext-polylang' ); ?>

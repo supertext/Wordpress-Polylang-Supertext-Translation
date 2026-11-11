@@ -245,7 +245,7 @@ class ServicesTest extends TestCase {
 		);
 
 		$this->assertTrue( Services::exists( 300 ) );
-		$this->assertFalse( Services::exists( 166 ), 'A type the ServiceID does not offer must be rejected' );
+		$this->assertFalse( Services::exists( 166 ), 'A type the ServiceId does not offer must be rejected' );
 	}
 
 	public function test_order_type_id_and_label_read_the_loaded_list(): void {
@@ -257,7 +257,7 @@ class ServicesTest extends TestCase {
 	}
 
 	public function test_label_falls_back_for_a_type_no_longer_offered(): void {
-		// An order placed earlier (or under another ServiceID) still has to render.
+		// An order placed earlier (or under another ServiceId) still has to render.
 		$this->stub_settings();
 		Functions\when( 'get_transient' )->justReturn(
 			array( 300 => array( 'label' => 'Only one', 'order_type_id' => 80, 'description' => '', 'short' => '' ) )

@@ -156,7 +156,7 @@
 	border-top: 1px solid var(--st-divider);
 }
 .supertext-admin .st-row:first-child { border-top: 0; }
-.supertext-admin .st-row__label { color: #1d2327; font-size: 14px; }
+.supertext-admin .st-row__label { color: #1d2327; font-size: 14px; flex: 1 1 12em; min-width: 0; }
 .supertext-admin .st-subhead {
 	margin: 16px 0 2px;
 	font-size: 11px;
@@ -175,11 +175,16 @@
 	font-size: 12px;
 	font-weight: 600;
 	line-height: 1.4;
-	white-space: nowrap;
+	/* Short badges stay on one line; long ones wrap instead of running off the card. */
+	max-width: 60%;
+	flex: 0 1 auto;
+	white-space: normal;
+	overflow-wrap: anywhere;
 	background: var(--st-badge-bg);
 	color: var(--st-badge-fg);
 }
 .supertext-admin .st-badge .dashicons {
+	flex: 0 0 auto;
 	width: 15px;
 	height: 15px;
 	font-size: 15px;
@@ -188,6 +193,12 @@
 .supertext-admin .st-badge--warn { background: var(--st-amber-bg); color: var(--st-amber-fg); }
 .supertext-admin .st-badge--off  { background: var(--st-grey-bg);  color: var(--st-grey-fg); }
 .supertext-admin .st-badge--bad  { background: var(--st-red-bg);   color: var(--st-red-fg); }
+
+/* Phones: a row with a long badge puts the badge under its label. */
+@media (max-width: 600px) {
+	.supertext-admin .st-row { flex-wrap: wrap; gap: 8px 16px; }
+	.supertext-admin .st-badge { max-width: 100%; }
+}
 
 /* ── Setup steps ──────────────────────────────────────────────────────── */
 .supertext-admin .st-step {

@@ -21,3 +21,11 @@ updates:
       # the oldest version the plugin supports (see tests/README.md).
       - dependency-name: "phpunit/phpunit"
         versions: [">=12"]
+  - package-ecosystem: "npm"
+    directory: "/tests/e2e"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    groups:
+      npm-minor-and-patch:
+        update-types: ["minor", "patch"]

@@ -184,7 +184,7 @@ class Client {
 
 	/**
 	 * Fetches the translation product types (order-type configurations) offered for
-	 * a Supertext ServiceID.
+	 * a Supertext ServiceId.
 	 *
 	 * `GET api/v1/util/ordertype/{service_id}` returns a flat list of objects, each
 	 * carrying `Name`, `Description`, `ShortDescription`,
@@ -193,7 +193,7 @@ class Client {
 	 * Uses a short timeout: this feeds an admin dropdown that has a built-in
 	 * fallback, so it must never stall the posts list for long.
 	 *
-	 * @param int $service_id The Supertext ServiceID (order-type group).
+	 * @param int $service_id The Supertext ServiceId (order-type group).
 	 * @return array|WP_Error The decoded list on success.
 	 */
 	public function get_order_types( int $service_id ) {

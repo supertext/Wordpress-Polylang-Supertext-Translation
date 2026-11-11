@@ -482,7 +482,7 @@ class Page {
 			<?php
 			self::hero(
 				__( 'Supertext for Polylang', 'supertext-polylang' ),
-				__( 'Machine & professional translation, wired straight into Polylang.', 'supertext-polylang' )
+				__( 'AI & professional translation, wired straight into Polylang.', 'supertext-polylang' )
 			);
 			self::render_status_panel();
 			?>
@@ -599,7 +599,7 @@ class Page {
 		?>
 		<h2 style="margin-top:1em;"><?php esc_html_e( 'Order callbacks (debug)', 'supertext-polylang' ); ?></h2>
 		<p class="description" style="max-width:640px;">
-			<?php esc_html_e( 'The most recent payload Supertext POSTed to the callback URL is recorded here, so we can see exactly what the system sends when an order completes.', 'supertext-polylang' ); ?>
+			<?php esc_html_e( 'The most recent payload Supertext POSTed to the callback URL is recorded here, so Supertext support can see exactly what the system sends when an order completes.', 'supertext-polylang' ); ?>
 		</p>
 		<p><code><?php echo esc_html( Callback::url() ); ?></code></p>
 

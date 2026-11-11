@@ -135,7 +135,7 @@ final class Reporting {
 	 * @param string|null              $report_url     Tests: the center's URL (default: SUPERTEXT_REPORT_URL, else Plugin Health's).
 	 * @param (callable(): float)|null $now            Tests: wall-clock Unix seconds.
 	 * @param string                   $orders_base_url The order API's base URL (with trailing slash) for the professional-orders check.
-	 * @param int                      $orders_service_id The ServiceID whose order types the professional-orders check reads.
+	 * @param int                      $orders_service_id The ServiceId whose order types the professional-orders check reads.
 	 * @param string                   $screenshots_endpoint VibeBoost's capture endpoint for the screenshots key check.
 	 */
 	public function __construct(

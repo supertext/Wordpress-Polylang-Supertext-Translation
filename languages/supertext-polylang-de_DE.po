@@ -76,7 +76,7 @@ msgstr "API-Schlüssel"
 msgid "Environment"
 msgstr "Umgebung"
 
-msgid "Supertext environment for AI machine translation."
+msgid "Supertext environment for AI translation."
 msgstr "Supertext-Umgebung für die KI-Übersetzung."
 
 msgid "Your Supertext API key. The service becomes active once a key is saved. No Supertext account yet? Create one at %1$s. Generate your API key at %2$s (requires the Admin role)."
@@ -91,7 +91,7 @@ msgstr "supertext.com → Integrations → API"
 msgid "Language mapping"
 msgstr "Sprachzuordnung"
 
-msgid "Choose the Supertext language for each Polylang language. The suggested language is preselected: the one whose code equals the locale (de_CH → de-CH), else the usual one (de → de-DE, es_ES → es, de_DE_formal → de-DE). Languages without a suggestion, such as en_IE or gsw, show \"— choose —\"; until you choose one, translations into or from them stop with an error and nothing is sent to Supertext."
+msgid "Choose the Supertext language for each Polylang language. The suggested language is preselected: the one whose code equals the locale (de_CH → de-CH), else the usual one (de → de-DE, es_ES → es, de_DE_formal → de-DE). Languages without a suggestion, such as en_IE or gsw, show “— choose —”; until you choose one, translations into or from them stop with an error and nothing is sent to Supertext."
 msgstr "Wählen Sie für jede Polylang-Sprache die Supertext-Sprache. Die vorgeschlagene Sprache ist vorausgewählt: diejenige, deren Code dem Gebietsschema entspricht (de_CH → de-CH), sonst die übliche (de → de-DE, es_ES → es, de_DE_formal → de-DE). Sprachen ohne Vorschlag, etwa en_IE oder gsw, zeigen «— wählen —»; bis Sie eine Sprache wählen, brechen Übersetzungen in oder aus diesen Sprachen mit einem Fehler ab und es wird nichts an Supertext gesendet."
 
 msgid "Polylang language"
@@ -124,7 +124,7 @@ msgstr "Informell (du)"
 msgid "Not mapped: Supertext can't translate into or from this language yet"
 msgstr "Nicht zugeordnet: Supertext kann noch nicht in oder aus dieser Sprache übersetzen"
 
-msgid "Formality is offered only for the languages where Supertext supports it. It is preselected as formal for locales ending in _formal and informal for _informal; \"Automatic\" lets Supertext decide."
+msgid "Formality is offered only for the languages where Supertext supports it. It is preselected as formal for locales ending in _formal and informal for _informal; “Automatic” lets Supertext decide."
 msgstr "Die Anrede steht nur für Sprachen zur Wahl, in denen Supertext sie unterstützt. Für Gebietsschemas mit der Endung _formal ist die formelle, für _informal die informelle Anrede vorausgewählt; «Automatisch» überlässt die Wahl Supertext."
 
 msgid "No Supertext account yet? Create one at %1$s. Generate your API key at %2$s (supertext.com → Integrations → API; requires the Admin role)."
@@ -139,7 +139,7 @@ msgstr "Anmeldung fehlgeschlagen. Bitte prüfen Sie Ihren Supertext-API-Schlüss
 msgid "%s has no Supertext language, so nothing was sent to Supertext. An administrator can choose it in the drop-down for this language under Languages → Settings → Machine translation → Supertext → Language mapping."
 msgstr "%s hat keine Supertext-Sprache, deshalb wurde nichts an Supertext gesendet. Eine Administratorin oder ein Administrator kann sie in der Auswahlliste dieser Sprache unter Sprachen → Einstellungen → Maschinelle Übersetzung → Supertext → Sprachzuordnung wählen."
 
-msgid "Supertext offers this language pair, but not with the option \"%s\". An administrator can reset the formality of this language under Languages → Settings → Machine translation → Supertext → Language mapping."
+msgid "Supertext offers this language pair, but not with the option “%s”. An administrator can reset the formality of this language under Languages → Settings → Machine translation → Supertext → Language mapping."
 msgstr "Supertext bietet dieses Sprachpaar an, aber nicht mit der Option «%s». Eine Administratorin oder ein Administrator kann die Anrede dieser Sprache unter Sprachen → Einstellungen → Maschinelle Übersetzung → Supertext → Sprachzuordnung zurücksetzen."
 
 msgid "Supertext does not support this language pair (%1$s → %2$s). Check the Supertext language mapping in the settings."
@@ -188,7 +188,7 @@ msgstr "Vom Filter supertext_polylang_language_code gesetzt, der Vorrang vor die
 msgid "Translation files"
 msgstr "Übersetzungsdateien"
 
-msgid "Export posts as XLIFF or HTML files for translation tools, translators or Supertext’s web app, and import the translated files."
+msgid "Export posts as XLIFF or HTML files for translation tools, translators or Supertext's web app, and import the translated files."
 msgstr "Exportieren Sie Beiträge als XLIFF- oder HTML-Dateien für Übersetzungstools, Übersetzer oder die Web-App von Supertext, und importieren Sie die übersetzten Dateien."
 
 msgid "Export for translation"
@@ -293,14 +293,14 @@ msgstr "Die E-Mail-Adresse (der Benutzername) Ihres Supertext-Kontos."
 msgid "Order API Key"
 msgstr "Order-API-Schlüssel"
 
-msgid "Your Supertext \"Order API Key\" (used with the account email, via HTTP Basic auth, for order requests). Find it in your %1$s. No Supertext account yet? Create one at %2$s."
+msgid "Your Supertext “Order API Key” (used with the account email, via HTTP Basic auth, for order requests). Find it in your %1$s. No Supertext account yet? Create one at %2$s."
 msgstr "Ihr Supertext-„Order-API-Schlüssel“ (wird mit der Konto-E-Mail-Adresse über HTTP-Basic-Authentifizierung für Auftragsanfragen verwendet). Sie finden ihn in %1$s. Noch kein Supertext-Konto? Erstellen Sie eines auf %2$s."
 
 msgid "Supertext account settings"
 msgstr "Ihren Supertext-Kontoeinstellungen"
 
-msgid "ServiceID"
-msgstr "ServiceID"
+msgid "ServiceId"
+msgstr "ServiceId"
 
 msgid "The Supertext ServiceId for your translation services that are offered when ordering a human translation. Default %d. The list is cached for 12 hours."
 msgstr "Die Supertext-ServiceId für Ihre Übersetzungsdienste, die beim Bestellen einer menschlichen Übersetzung angeboten werden. Standard %d. Die Liste wird 12 Stunden zwischengespeichert."
@@ -332,7 +332,7 @@ msgstr "Geheime Vorschau-Links"
 msgid "Enable secret public preview links for unpublished posts/pages"
 msgstr "Geheime öffentliche Vorschau-Links für unveröffentlichte Beiträge/Seiten aktivieren"
 
-msgid "Master switch for the \"Public preview link\" box on the post/page editor: a private, expiring URL that shows an unpublished draft without logging in. When off, the box is hidden and any existing links stop working. Page screenshots (below) rely on this to capture draft pages."
+msgid "Master switch for the “Public preview link” box on the post/page editor: a private, expiring URL that shows an unpublished draft without logging in. When off, the box is hidden and any existing links stop working. Page screenshots (below) rely on this to capture draft pages."
 msgstr "Hauptschalter für das Feld „Öffentlicher Vorschau-Link“ im Beitrags-/Seiteneditor: eine private URL mit Ablaufdatum, die einen unveröffentlichten Entwurf ohne Anmeldung anzeigt. Ist die Option aus, wird das Feld ausgeblendet und bestehende Links funktionieren nicht mehr. Seiten-Screenshots (unten) brauchen sie, um Entwurfsseiten aufzunehmen."
 
 msgid "Page screenshots"
@@ -350,7 +350,7 @@ msgstr "VibeBoost Screenshots"
 msgid "Screenshot API key"
 msgstr "Screenshot-API-Schlüssel"
 
-msgid "Your personal VibeBoost API key (starts with \"vibe_\"). Required for page screenshots — the capture options the plugin uses need an authenticated key. Create one in your %s."
+msgid "Your personal VibeBoost API key (starts with “vibe_”). Required for page screenshots — the capture options the plugin uses need an authenticated key. Create one in your %s."
 msgstr "Ihr persönlicher VibeBoost-API-Schlüssel (beginnt mit „vibe_“). Für Seiten-Screenshots erforderlich — die Aufnahmeoptionen, die das Plugin verwendet, brauchen einen authentifizierten Schlüssel. Erstellen Sie einen in %s."
 
 msgid "VibeBoost account"
@@ -392,7 +392,7 @@ msgstr "Zielsprache"
 msgid "Translation type"
 msgstr "Übersetzungsart"
 
-msgid "\"%1$s\": source and target language are the same (%2$s)."
+msgid "“%1$s”: source and target language are the same (%2$s)."
 msgstr "„%1$s“: Quell- und Zielsprache sind identisch (%2$s)."
 
 msgid "Polylang is not available."
@@ -404,7 +404,7 @@ msgstr "Ungültiger Beitrag oder fehlende Quell-/Zielsprache."
 msgid "No translatable content found in this post. (source=%1$s, target=%2$s, builder=%3$s, content=%4$d bytes, title=%5$d chars)"
 msgstr "In diesem Beitrag wurden keine übersetzbaren Inhalte gefunden. (Quelle=%1$s, Ziel=%2$s, Builder=%3$s, Inhalt=%4$d Bytes, Titel=%5$d Zeichen)"
 
-msgid "An order already exists for \"%1$s\" (%2$s)."
+msgid "An order already exists for “%1$s” (%2$s)."
 msgstr "Für „%1$s“ besteht bereits ein Auftrag (%2$s)."
 
 msgid "Supertext human-translation credentials are not configured."
@@ -424,9 +424,6 @@ msgstr "Wählen Sie eine Übersetzungsart, bevor Sie Supertext Menschliche Über
 
 msgid "Please select a delivery option before applying Supertext Human Translation."
 msgstr "Wählen Sie eine Lieferfrist, bevor Sie Supertext Menschliche Übersetzung anwenden."
-
-msgid "No active Supertext machine-translation service. Configure it in Polylang → Languages → Settings → Machine Translation."
-msgstr "Kein aktiver Supertext-Dienst für maschinelle Übersetzung. Richten Sie ihn unter Polylang → Sprachen → Einstellungen → Maschinelle Übersetzung ein."
 
 msgid "Supertext human-translation credentials are not configured. Add your account email and Order API Key on the Supertext settings page."
 msgstr "Die Supertext-Zugangsdaten für menschliche Übersetzung sind nicht eingetragen. Tragen Sie Ihre Konto-E-Mail-Adresse und den Order-API-Schlüssel auf der Supertext-Einstellungsseite ein."
@@ -596,8 +593,8 @@ msgstr "Integration: %s"
 msgid "Supertext for Polylang"
 msgstr "Supertext für Polylang"
 
-msgid "Machine & professional translation, wired straight into Polylang."
-msgstr "Maschinelle & professionelle Übersetzung, direkt in Polylang eingebaut."
+msgid "AI & professional translation, wired straight into Polylang."
+msgstr "KI- & professionelle Übersetzung, direkt in Polylang eingebaut."
 
 msgid "Setup"
 msgstr "Einrichtung"
@@ -647,8 +644,8 @@ msgstr "Protokoll der Auftrags-Callbacks & Diagnose."
 msgid "Order callbacks (debug)"
 msgstr "Auftrags-Callbacks (Debug)"
 
-msgid "The most recent payload Supertext POSTed to the callback URL is recorded here, so we can see exactly what the system sends when an order completes."
-msgstr "Hier wird die letzte Nutzlast festgehalten, die Supertext per POST an die Callback-URL gesendet hat, damit genau sichtbar ist, was das System bei einem abgeschlossenen Auftrag schickt."
+msgid "The most recent payload Supertext POSTed to the callback URL is recorded here, so Supertext support can see exactly what the system sends when an order completes."
+msgstr "Hier wird die letzte Nutzlast festgehalten, die Supertext per POST an die Callback-URL gesendet hat, damit der Supertext-Support genau sieht, was das System bei einem abgeschlossenen Auftrag schickt."
 
 msgid "No callbacks recorded yet."
 msgstr "Noch keine Callbacks aufgezeichnet."
@@ -800,7 +797,7 @@ msgstr "Advanced Custom Fields ist nicht aktiv, darum gibt es keine ACF-Felder a
 msgid "No ACF field groups found."
 msgstr "Keine ACF-Feldgruppen gefunden."
 
-msgid "Translation setting per ACF field, as configured for Polylang. “Translate” / “Translate once” fields are sent for translation; “Copy”, “Synchronize” and “Ignore” fields are not. Set this in the ACF field group editor (each field’s “Translation” option)."
+msgid "Translation setting per ACF field, as configured for Polylang. “Translate” / “Translate once” fields are sent for translation; “Copy”, “Synchronize” and “Ignore” fields are not. Set this in the ACF field group editor (each field's “Translation” option)."
 msgstr "Übersetzungseinstellung je ACF-Feld, wie für Polylang konfiguriert. Felder mit „Übersetzen“ / „Einmal übersetzen“ werden zur Übersetzung gesendet; Felder mit „Kopieren“, „Synchronisieren“ und „Ignorieren“ nicht. Eingestellt wird dies im ACF-Feldgruppen-Editor (Option „Übersetzung“ jedes Felds)."
 
 msgid "Field group"
@@ -839,7 +836,7 @@ msgstr "Unbekannte Quell- oder Zielsprache."
 msgid "No strings selected to translate."
 msgstr "Keine Strings zum Übersetzen ausgewählt."
 
-msgid "This page has a Supertext human translation order in progress, so it can’t be deleted until the translation is delivered. You can still edit it."
+msgid "This page has a Supertext human translation order in progress, so it can't be deleted until the translation is delivered. You can still edit it."
 msgstr "Für diese Seite läuft ein Supertext-Auftrag für menschliche Übersetzung, darum kann sie bis zur Lieferung der Übersetzung nicht gelöscht werden. Bearbeiten können Sie sie weiterhin."
 
 msgid "Gravity Forms — Supertext"
@@ -968,7 +965,7 @@ msgstr "Aktivieren Sie die Option, um einen geheimen Link zu erzeugen, der diese
 msgid "Supertext for Polylang requires Polylang Pro (with the Machine Translation module) to be active."
 msgstr "Supertext für Polylang setzt voraus, dass Polylang Pro (mit dem Modul Maschinelle Übersetzung) aktiv ist."
 
-msgid "Supertext for Polylang: Polylang Pro is active but has not been patched to expose the \"pll_mt_services\" filter, so Supertext cannot register as a translation service yet."
+msgid "Supertext for Polylang: Polylang Pro is active but has not been patched to expose the “pll_mt_services” filter, so Supertext cannot register as a translation service yet."
 msgstr "Supertext für Polylang: Polylang Pro ist aktiv, wurde aber nicht gepatcht, um den Filter „pll_mt_services“ bereitzustellen, darum kann sich Supertext noch nicht als Übersetzungsdienst registrieren."
 
 msgid "Patch Polylang now →"

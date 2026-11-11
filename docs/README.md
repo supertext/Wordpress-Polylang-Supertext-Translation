@@ -301,7 +301,7 @@ plugin's own settings page.
    `SUPERTEXT_ACCOUNT_EMAIL` and `SUPERTEXT_ORDER_API_KEY` instead (wp-config.php constants or
    environment variables); they are used while the fields are empty, and the fields say so.
    The VibeBoost key of page screenshots works the same way with `VIBEBOOST_API_KEY`.
-4. Leave **ServiceID** at **46** unless Supertext told you otherwise. It selects which
+4. Leave **ServiceId** at **46** unless Supertext told you otherwise. It selects which
    service's translation types are offered in the **Translation type** dropdown; the list
    is loaded live from your Supertext account (see
    [Translation types](#translation-types)).
@@ -318,7 +318,7 @@ plugin's own settings page.
 #### Translation types
 
 The **Translation type** options (BASIC / PREMIUM / CREATIVE) are **not** hardcoded in the
-plugin — they are loaded from your Supertext account for the configured **ServiceID**, so
+plugin — they are loaded from your Supertext account for the configured **ServiceId**, so
 the names, descriptions and available products are always the ones your account actually
 offers. Each option's short description shows as a tooltip.
 
@@ -327,10 +327,10 @@ offers. Each option's short description shows as a tooltip.
   delivery options, a French admin the French ones. Whatever Supertext has no translation
   for falls back to English.
 - The list is cached for **12 hours**, per language. Saving the settings page clears the
-  cache, so change the ServiceID (or just re-save) to pick up a change immediately.
+  cache, so change the ServiceId (or just re-save) to pick up a change immediately.
 - If Supertext can't be reached, the plugin falls back to the three standard types of
-  ServiceID 46 so ordering keeps working, and retries a few minutes later.
-- Ordering is restricted to the types in that list: a type your ServiceID doesn't offer is
+  ServiceId 46 so ordering keeps working, and retries a few minutes later.
+- Ordering is restricted to the types in that list: a type your ServiceId doesn't offer is
   rejected before any order or quote is placed.
 
 ### Checking the status

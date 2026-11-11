@@ -44,7 +44,7 @@ class Bulk_Actions {
 	const QUOTE_ACTION = 'supertext_polylang_quote';
 
 	// Human translation product types (the "Translation type" dropdown) are loaded
-	// from the configured Supertext ServiceID — see Human_Services.
+	// from the configured Supertext ServiceId — see Human_Services.
 
 	/** Human translation delivery options (Supertext DeliveryId => label). */
 	const EXPRESS_OPTIONS = array(
@@ -373,7 +373,7 @@ class Bulk_Actions {
 				'supertext_same_language',
 				sprintf(
 					/* translators: 1: post title, 2: language slug. */
-					__( '"%1$s": source and target language are the same (%2$s).', 'supertext-polylang' ),
+					__( '“%1$s”: source and target language are the same (%2$s).', 'supertext-polylang' ),
 					get_the_title( $post_id ),
 					$target_lang
 				)
@@ -451,7 +451,7 @@ class Bulk_Actions {
 				'supertext_same_language',
 				sprintf(
 					/* translators: 1: post title, 2: language slug. */
-					__( '"%1$s": source and target language are the same (%2$s).', 'supertext-polylang' ),
+					__( '“%1$s”: source and target language are the same (%2$s).', 'supertext-polylang' ),
 					$post->post_title,
 					$target_lang
 				)
@@ -572,7 +572,7 @@ class Bulk_Actions {
 					'supertext_already_ordered',
 					sprintf(
 						/* translators: 1: post title, 2: language slug. */
-						__( 'An order already exists for "%1$s" (%2$s).', 'supertext-polylang' ),
+						__( 'An order already exists for “%1$s” (%2$s).', 'supertext-polylang' ),
 						get_the_title( $post_id ),
 						$target_lang
 					)
@@ -823,7 +823,7 @@ class Bulk_Actions {
 			'no_lang'           => array( 'error', __( 'Please select a target language before applying a Supertext translation action.', 'supertext-polylang' ) ),
 			'no_service'        => array( 'error', __( 'Please select a translation type before applying Supertext Human Translation.', 'supertext-polylang' ) ),
 			'no_delivery'       => array( 'error', __( 'Please select a delivery option before applying Supertext Human Translation.', 'supertext-polylang' ) ),
-			'mt_not_configured'    => array( 'error', __( 'No active Supertext machine-translation service. Configure it in Polylang → Languages → Settings → Machine Translation.', 'supertext-polylang' ) ),
+			'mt_not_configured'    => array( 'error', __( 'No active Supertext AI service. Configure it in Polylang → Languages → Settings → Machine Translation.', 'supertext-polylang' ) ),
 			'human_not_configured' => array( 'error', __( 'Supertext human-translation credentials are not configured. Add your account email and Order API Key on the Supertext settings page.', 'supertext-polylang' ) ),
 		);
 

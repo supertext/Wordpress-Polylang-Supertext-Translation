@@ -87,7 +87,7 @@ class SettingsTest extends TestCase {
 		Functions\when( 'sanitize_email' )->returnArg();
 		Functions\when( 'sanitize_text_field' )->returnArg();
 
-		// A blank or negative ServiceID would leave the dropdown with nothing to offer.
+		// A blank or negative ServiceId would leave the dropdown with nothing to offer.
 		$out = Settings::sanitize( array( 'service_id' => $input ) );
 
 		$this->assertSame( Settings::DEFAULT_SERVICE_ID, $out['service_id'] );

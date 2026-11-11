@@ -403,7 +403,7 @@ class Client implements Client_Interface {
 				$errcode = 'supertext_unsupported_feature';
 				$message = sprintf(
 					/* translators: %s is the name of the option, e.g. "politeness". */
-					__( 'Supertext offers this language pair, but not with the option "%s". An administrator can reset the formality of this language under Languages → Settings → Machine translation → Supertext → Language mapping.', 'supertext-polylang' ),
+					__( 'Supertext offers this language pair, but not with the option “%s”. An administrator can reset the formality of this language under Languages → Settings → Machine translation → Supertext → Language mapping.', 'supertext-polylang' ),
 					'' !== (string) $e->feature ? (string) $e->feature : '?'
 				);
 				break;

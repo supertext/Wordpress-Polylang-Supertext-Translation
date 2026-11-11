@@ -106,7 +106,7 @@ class Source_Lock {
 
 		printf(
 			'<div class="notice notice-info"><p>%s</p></div>',
-			esc_html__( 'This page has a Supertext human translation order in progress, so it can’t be deleted until the translation is delivered. You can still edit it.', 'supertext-polylang' )
+			esc_html__( 'This page has a Supertext human translation order in progress, so it can\'t be deleted until the translation is delivered. You can still edit it.', 'supertext-polylang' )
 		);
 	}
 

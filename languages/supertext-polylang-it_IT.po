@@ -1021,3 +1021,7 @@ msgstr "Finché questo campo è vuoto, viene usato il valore di %s sul server."
 
 msgid "Set by %s on the server; change it there."
 msgstr "Impostato da %s sul server; lo modifichi lì."
+
+#. translators: %s: when it was checked, e.g. "checked November 11, 2026 11:00 am".
+msgid "Works · %s"
+msgstr "Funziona · %s"

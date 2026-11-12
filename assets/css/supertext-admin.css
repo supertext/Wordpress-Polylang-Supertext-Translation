@@ -156,6 +156,8 @@
 	border-top: 1px solid var(--st-divider);
 }
 .supertext-admin .st-row:first-child { border-top: 0; }
+.supertext-admin .st-row--note { border-top: 0; padding-top: 0; }
+.supertext-admin .st-row--note .st-row__label { color: #b32d2e; font-size: 13px; }
 .supertext-admin .st-row__label { color: #1d2327; font-size: 14px; flex: 1 1 12em; min-width: 0; }
 .supertext-admin .st-subhead {
 	margin: 16px 0 2px;

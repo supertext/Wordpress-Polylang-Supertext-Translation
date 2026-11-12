@@ -260,7 +260,7 @@ changed: the **AI translation** API key (Polylang's settings) and, once you ente
 **account email and Order API Key** for professional translation (**Supertext → Settings**; checked
 by reading the translation types, which costs nothing). An AI translation or an order that
 Supertext rejects marks its key as rejected. The results are kept and shown in the status panel
-of **Supertext → Settings** (one row per key, with the time of the check); the AI key's also in
+of **Supertext → Settings** (one row per key: *Works* with the time of the check, the full message as tooltip; a key with a problem gets a red line underneath with what is wrong); the AI key's also in
 the Supertext section of Polylang's settings. **Test connection** in the status panel checks all
 of them again. The VibeBoost key is checked without capturing anything: a Pro capture
 (`fullPage=true`) of `https://supertext-key-check.invalid/`, so VibeBoost checks the key first

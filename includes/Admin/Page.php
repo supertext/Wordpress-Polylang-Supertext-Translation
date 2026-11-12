@@ -351,9 +351,17 @@ class Page {
 			$message = Commando::message( $check, true, $name );
 			$state   = 'success' === $message['type'] ? 'ok' : ( 'error' === $message['type'] ? 'bad' : 'warn' );
 			/* translators: %s: which key, e.g. "AI translation (API key)". */
-			self::state_row( sprintf( __( 'API key check: %s', 'supertext-polylang' ), Commando::key_label( $name ) ), $state, Commando::checked_at( $check ) );
+			$label = sprintf( __( 'API key check: %s', 'supertext-polylang' ), Commando::key_label( $name ) );
+			if ( 'ok' === $state ) {
+				// One line: the badge says it works; the full message is the tooltip.
+				/* translators: %s: when it was checked, e.g. "checked November 11, 2026 11:00 am". */
+				self::state_row( $label, $state, sprintf( __( 'Works · %s', 'supertext-polylang' ), Commando::checked_at( $check ) ), wp_strip_all_tags( $message['text'] ) );
+				continue;
+			}
+			// A problem keeps its explanation (with the links to fix it) below the row.
+			self::state_row( $label, $state, Commando::checked_at( $check ) );
 			printf(
-				'<div class="st-row"><span class="st-row__label">%s</span></div>',
+				'<div class="st-row st-row--note"><span class="st-row__label">%s</span></div>',
 				wp_kses( $message['text'], array( 'a' => array( 'href' => array(), 'target' => array(), 'rel' => array() ) ) )
 			);
 		}
@@ -419,9 +427,10 @@ class Page {
 	 * @param string $label Row label.
 	 * @param string $state One of 'ok' (green ✓), 'warn' (amber ⚠), 'off' (grey •).
 	 * @param string $text  Status text.
+	 * @param string $title Optional tooltip for the badge.
 	 * @return void
 	 */
-	private static function state_row( string $label, string $state, string $text ): void {
+	private static function state_row( string $label, string $state, string $text, string $title = '' ): void {
 		$map = array(
 			'ok'   => array( '', 'dashicons-yes' ),
 			'warn' => array( '--warn', 'dashicons-warning' ),
@@ -430,9 +439,10 @@ class Page {
 		);
 		list( $modifier, $icon ) = $map[ $state ] ?? $map['off'];
 		printf(
-			'<div class="st-row"><span class="st-row__label">%s</span><span class="st-badge st-badge%s"><span class="dashicons %s"></span>%s</span></div>',
+			'<div class="st-row"><span class="st-row__label">%s</span><span class="st-badge st-badge%s"%s><span class="dashicons %s"></span>%s</span></div>',
 			esc_html( $label ),
 			esc_attr( $modifier ),
+			'' !== $title ? ' title="' . esc_attr( $title ) . '"' : '',
 			esc_attr( $icon ),
 			esc_html( $text )
 		);

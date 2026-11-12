@@ -1,13 +1,9 @@
-name: Release on minor version bump
+name: Release on version bump
 
-# Cuts a GitHub release + installable plugin zip, but ONLY when the major (X) or
-# minor (Y) of the X.Y.Z version changes — patch (Z) bumps do not release.
-#
-# How the gate works: the release is keyed on the "vX.Y." tag line. If any tag for
-# the current X.Y line already exists, this run is a no-op. So the first push that
-# introduces a new minor (e.g. 0.9.x -> 0.10.0) publishes a release; every later
-# patch within that minor is skipped. The existing v0.9.39 release already marks the
-# 0.9 line as released.
+# Cuts a GitHub release + installable plugin zip whenever the version in
+# supertext-polylang.php changes to one that has no tag yet (major, minor or patch).
+# The plugin header's "Version:" and SUPERTEXT_POLYLANG_VERSION must match, or the
+# run fails. A version that is already tagged releases nothing. Never tag by hand.
 
 on:
   push:
@@ -38,16 +34,18 @@ jobs:
             echo "::error::Could not read SUPERTEXT_POLYLANG_VERSION from supertext-polylang.php"
             exit 1
           fi
-          MAJOR=${VERSION%%.*}
-          REST=${VERSION#*.}
-          MINOR=${REST%%.*}
+          HEADER=$(grep -oP '^\s*\*\s*Version:\s*\K[0-9]+\.[0-9]+\.[0-9]+' supertext-polylang.php | head -1 || true)
+          if [ "$HEADER" != "$VERSION" ]; then
+            echo "::error file=supertext-polylang.php::Version mismatch: header says '$HEADER', SUPERTEXT_POLYLANG_VERSION says '$VERSION'."
+            exit 1
+          fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          if [ -n "$(git tag -l "v${MAJOR}.${MINOR}.*")" ]; then
+          if git rev-parse -q --verify "refs/tags/v$VERSION" >/dev/null; then
             echo "release=false" >> "$GITHUB_OUTPUT"
-            echo "A release already exists for the ${MAJOR}.${MINOR} line — nothing to do (v$VERSION)."
+            echo "v$VERSION is already released: nothing to do."
           else
             echo "release=true" >> "$GITHUB_OUTPUT"
-            echo "New ${MAJOR}.${MINOR} line — will publish v$VERSION."
+            echo "Will publish v$VERSION."
           fi
 
       - name: Build installable plugin zip

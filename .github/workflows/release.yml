@@ -1,9 +1,10 @@
-name: Release on version bump
+name: Release on minor version bump
 
-# Cuts a GitHub release + installable plugin zip whenever the version in
-# supertext-polylang.php changes to one that has no tag yet (major, minor or patch).
-# The plugin header's "Version:" and SUPERTEXT_POLYLANG_VERSION must match, or the
-# run fails. A version that is already tagged releases nothing. Never tag by hand.
+# Cuts a GitHub release + installable plugin zip only when a new X.Y line starts
+# (1.0.x -> 1.1.0, 1.x -> 2.0.0): if any tag vX.Y.* exists, the run releases
+# nothing, so patch bumps (1.1.0 -> 1.1.1) only ship with the next minor. The plugin
+# header's "Version:" and SUPERTEXT_POLYLANG_VERSION must match, or the run fails.
+# Never tag by hand.
 
 on:
   push:
@@ -40,12 +41,13 @@ jobs:
             exit 1
           fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          if git rev-parse -q --verify "refs/tags/v$VERSION" >/dev/null; then
+          LINE="${VERSION%.*}"   # X.Y
+          if [ -n "$(git tag -l "v${LINE}.*")" ]; then
             echo "release=false" >> "$GITHUB_OUTPUT"
-            echo "v$VERSION is already released: nothing to do."
+            echo "The ${LINE} line is already released: patch versions (v$VERSION) release nothing."
           else
             echo "release=true" >> "$GITHUB_OUTPUT"
-            echo "Will publish v$VERSION."
+            echo "New ${LINE} line: will publish v$VERSION."
           fi
 
       - name: Build installable plugin zip

@@ -518,7 +518,7 @@
 @keyframes st-spin { to { transform: rotate( 360deg ); } }
 
 /* Table card */
-.supertext-admin .st-tablecard { padding: 0; overflow: hidden; }
+.supertext-admin .st-tablecard { padding: 0; overflow-x: auto; }
 .supertext-admin .st-table { width: 100%; border-collapse: collapse; }
 .supertext-admin .st-table thead th {
 	text-align: left;
@@ -560,7 +560,7 @@
 .supertext-admin .st-col-check input[type="checkbox"]:checked::before { content: none !important; }
 .supertext-admin .st-col-field { width: 150px; font-size: 13.5px; font-weight: 600; color: #344054; }
 .supertext-admin .st-col-group { width: 120px; }
-.supertext-admin .st-col-source { color: #475467; font-size: 14px; line-height: 1.5; word-break: break-word; }
+.supertext-admin .st-col-source { min-width: 200px; color: #475467; font-size: 14px; line-height: 1.5; word-break: break-word; }
 
 .supertext-admin .st-chip {
 	display: inline-block;
@@ -576,6 +576,8 @@
 
 .supertext-admin .st-tr-input {
 	width: 100%;
+	/* Several languages: the table scrolls sideways rather than squeezing the boxes. */
+	min-width: 170px;
 	box-sizing: border-box;
 	border-radius: 10px;
 	border: 1px solid #d0d5dd;

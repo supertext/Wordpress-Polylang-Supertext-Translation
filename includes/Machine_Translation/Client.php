@@ -309,9 +309,15 @@ class Client implements Client_Interface {
 	 * @return array<int|string, string>|WP_Error
 	 */
 	private function translate_segments( array $sources, string $target_lang, string $source_lang, string $politeness, string $route ) {
+		// Shortcodes travel as placeholders and come back unchanged (Shortcodes).
 		$segments = array();
+		$codes    = array();
 		foreach ( $sources as $key => $source ) {
-			$segments[ $key ] = Segment::html( (string) $source );
+			list( $html, $found ) = Shortcodes::protect( (string) $source );
+			if ( array() !== $found ) {
+				$codes[ $key ] = $found;
+			}
+			$segments[ $key ] = Segment::html( $html );
 		}
 
 		/** @var int $timeout */
@@ -336,6 +342,12 @@ class Client implements Client_Interface {
 			return self::to_wp_error( $e );
 		}
 		Commando::on_request();
+
+		foreach ( $codes as $key => $found ) {
+			if ( isset( $result[ $key ] ) ) {
+				$result[ $key ] = Shortcodes::restore( (string) $result[ $key ], $found );
+			}
+		}
 
 		return $result;
 	}

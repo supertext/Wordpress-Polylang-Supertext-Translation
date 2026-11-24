@@ -608,8 +608,10 @@ it.** There is no separate, parallel content parser to keep in sync.
   their own Polylang export integration — their content isn't exposed to the pipeline, so
   it passes through untranslated. (A YOOtheme‑style integration could be added per builder.)
 - **Custom fields left as *Copy* or *Ignore*** in the Polylang settings.
-- **Non‑text data** — IDs, URLs, CSS, shortcodes' structural parts, and raw `code` blocks
-  are intentionally left intact.
+- **Non‑text data** — IDs, URLs, CSS and raw `code` blocks are intentionally left intact.
+- **Shortcodes** such as `[wpforms id="12"]` stay exactly as they are: in AI translations they
+  travel as `<span data-st-sc="N"></span>` placeholders (`Machine_Translation\Shortcodes`) and
+  are put back unchanged, so their quotes can't turn typographic and break the form or gallery.
 
 > In short: **manage *what* gets translated in Polylang's own settings** (custom fields,
 > taxonomies, ACF). Supertext simply performs the translation on whatever Polylang hands it,

@@ -15,7 +15,7 @@ defined( 'ABSPATH' ) || exit;
  * shortcode is put back exactly as it was. A shortcode whose placeholder got lost is added
  * at the end of the text, so it still works.
  *
- * @since 1.0.2
+ * @since 1.1.0
  */
 final class Shortcodes {
 	/** A shortcode tag: `[name …]`, `[/name]`, also `[[escaped]]`; the name is group 1. */

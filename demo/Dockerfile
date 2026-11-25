@@ -10,10 +10,11 @@
 
 FROM php:8.5-apache
 
+# OPcache is built into PHP 8.5: no extension to install (php.ini still configures it).
 RUN apt-get update \
     && apt-get install -y --no-install-recommends libicu-dev libzip-dev libpng-dev libjpeg62-turbo-dev libwebp-dev libfreetype6-dev unzip curl less mariadb-client \
     && docker-php-ext-configure gd --with-jpeg --with-webp --with-freetype \
-    && docker-php-ext-install -j"$(nproc)" intl zip gd mysqli pdo_mysql opcache exif \
+    && docker-php-ext-install -j"$(nproc)" intl zip gd mysqli pdo_mysql exif \
     && (a2dismod -f mpm_event mpm_worker || true) && a2enmod mpm_prefork rewrite headers \
     && rm -rf /var/lib/apt/lists/*
 

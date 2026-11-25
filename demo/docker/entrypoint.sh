@@ -83,10 +83,16 @@ RewriteRule . /index.php [L]
 HT
 
 # Optional: Polylang Pro (paid) from a private URL. Without it, free Polylang runs and the
-# plugin shows its "requires Polylang Pro" notice for the translation services.
+# plugin shows its "requires Polylang Pro" notice for the translation services. On Railway the
+# zip comes from the demo-assets service; in the docs run from the private GitHub repository
+# supertext/integrations-demo-assets (contents API URL), which needs POLYLANG_PRO_ZIP_TOKEN.
 if [ -n "$POLYLANG_PRO_ZIP_URL" ] && [ ! -d wp-content/plugins/polylang-pro ]; then
     echo "Installing Polylang Pro..."
-    if curl -fsSL -o /tmp/polylang-pro.zip "$POLYLANG_PRO_ZIP_URL"; then
+    set --
+    if [ -n "$POLYLANG_PRO_ZIP_TOKEN" ]; then
+        set -- -H "Authorization: Bearer $POLYLANG_PRO_ZIP_TOKEN" -H "Accept: application/vnd.github.raw"
+    fi
+    if curl -fsSL "$@" -o /tmp/polylang-pro.zip "$POLYLANG_PRO_ZIP_URL"; then
         unzip -q -o /tmp/polylang-pro.zip -d wp-content/plugins && rm -f /tmp/polylang-pro.zip
     else
         echo "Could not download POLYLANG_PRO_ZIP_URL, staying on free Polylang" >&2
@@ -98,10 +104,19 @@ if [ -d wp-content/plugins/polylang-pro ]; then
 else
     $WP plugin activate polylang --quiet
 fi
-$WP plugin activate supertext-polylang --quiet
+# DEMO_SKIP_PLUGIN=1: a site without the plugin (the install movie installs it from a zip).
+if [ "${DEMO_SKIP_PLUGIN:-0}" = "1" ]; then
+    $WP plugin deactivate supertext-polylang --quiet 2>/dev/null || true
+    rm -rf wp-content/plugins/supertext-polylang
+else
+    $WP plugin activate supertext-polylang --quiet
+fi
 
 # Languages, accounts, settings and sample content.
 $WP eval-file /usr/local/share/wordpress-demo/setup.php
+# A new request: Polylang Pro knows Supertext as a machine translation service only once
+# setup.php has patched it (see setup-mt.php).
+$WP eval-file /usr/local/share/wordpress-demo/setup-mt.php
 
 # Language packs for the back end in the demo languages (best effort, needs internet).
 for locale in de_DE fr_FR it_IT; do

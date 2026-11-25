@@ -5,7 +5,9 @@
   "description": "Playwright end-to-end tests for the Supertext for Polylang plugin.",
   "scripts": {
     "test": "playwright test",
-    "report": "playwright show-report"
+    "report": "playwright show-report",
+    "movie": "node movie.mjs",
+    "movie:install": "node movie-install.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.65.1",

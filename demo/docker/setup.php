@@ -62,6 +62,8 @@ if ( function_exists( 'PLL' ) && PLL() && isset( PLL()->model ) ) {
 	// Skip Polylang's setup wizard.
 	delete_transient( 'pll_activation_redirect' );
 	update_option( 'pll_wizard_done', 1 );
+	// Polylang Pro's "Welcome to Polylang Pro – Run the Setup Wizard" notice: dismissed like its Skip setup button.
+	update_option( 'pll_dismissed_notices', array_values( array_unique( array_merge( (array) get_option( 'pll_dismissed_notices', array() ), array( 'wizard' ) ) ) ) );
 } else {
 	supertext_demo_log( 'Polylang is not loaded, skipping languages' );
 }

@@ -31,6 +31,8 @@ tests/e2e/.env.local
 tests/e2e/.auth/
 tests/e2e/test-results/
 tests/e2e/playwright-report/
+tests/e2e/movie/out/
+tests/e2e/movie/voice-cache/
 
 # Unit tests (PHPUnit)
 tests/unit/vendor/

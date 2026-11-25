@@ -6,7 +6,7 @@
 #
 # Runtime variables: DATABASE_URL (or MYSQL* parts), DEMO_ADMIN_*, DEMO_EDITOR_*,
 # SUPERTEXT_API_KEY, SUPERTEXT_ACCOUNT_EMAIL, SUPERTEXT_ENVIRONMENT, POLYLANG_PRO_ZIP_URL
-# (optional) — see docs/DEVELOPER.md → Demo site.
+# and POLYLANG_PRO_ZIP_TOKEN (optional), DEMO_SKIP_PLUGIN (install movie) — see docs/DEVELOPER.md → Demo site.
 
 FROM php:8.5-apache
 
@@ -41,6 +41,7 @@ COPY assets wp-content/plugins/supertext-polylang/assets
 COPY demo/docker/apache.conf /etc/apache2/sites-available/000-default.conf
 COPY demo/docker/wp-config-extra.php /usr/local/share/wordpress-demo/wp-config-extra.php
 COPY demo/docker/setup.php /usr/local/share/wordpress-demo/setup.php
+COPY demo/docker/setup-mt.php /usr/local/share/wordpress-demo/setup-mt.php
 COPY demo/docker/entrypoint.sh /usr/local/bin/demo-entrypoint
 # Only $PORT (apache.conf): the default "Listen 80" would clash when several demos share
 # a host network.

@@ -1,0 +1,168 @@
+# The two movies, recorded on the demo with the real Polylang Pro at the fixed address
+# http://polylang-docs.test and the Supertext stand-in (tests/e2e/stand-in/): the demo movie (the
+# Supertext AI Translation bulk action; also the README's docs/images/demo.gif, committed straight to
+# main) and the install and configuration movie. Both MP4s are attached to the run (for YouTube).
+# See README.md → Demo movies.
+#
+# Secret: POLYLANG_PRO_ZIP_TOKEN (read-only Contents token for supertext/integrations-demo-assets,
+# which holds the Polylang Pro zip; the same token as WPML_ZIP_TOKEN in the WPML repository).
+name: Docs movies
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - includes/**
+      - assets/**
+      - languages/**
+      - supertext-polylang.php
+      - demo/**
+      - tests/e2e/movie*
+      - tests/e2e/movie/**
+      - tests/e2e/stand-in/**
+      - .github/workflows/docs-media.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docs-media
+  cancel-in-progress: true
+
+env:
+  SITE_URL: http://polylang-docs.test
+  POLYLANG_PRO_ZIP_URL: https://api.github.com/repos/supertext/integrations-demo-assets/contents/polylang/polylang-pro.3.9.2.zip
+
+jobs:
+  record:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    permissions:
+      contents: write
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: root
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot" --health-interval=5s --health-timeout=5s --health-retries=30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+
+      - name: Tools (ffmpeg, Piper voice, Playwright)
+        working-directory: tests/e2e
+        run: |
+          set -euo pipefail
+          sudo apt-get update -q && sudo apt-get install -y -q ffmpeg
+          pip install --quiet piper-tts
+          npm ci
+          npx playwright install --with-deps chromium
+          echo "127.0.0.1 polylang-docs.test" | sudo tee -a /etc/hosts
+
+      - name: Demo image, accounts and plugin zip
+        run: |
+          set -euo pipefail
+          docker build -q -f demo/Dockerfile -t polylang-docs .
+          # Accounts for this run only (random, masked, never stored).
+          for name in ADMIN EDITOR; do
+            pass="$(openssl rand -base64 24 | tr -dc 'A-Za-z0-9' | head -c 20)Aa1!"
+            echo "::add-mask::$pass"
+            echo "DEMO_${name}_PASSWORD=$pass" >> "$GITHUB_ENV"
+          done
+          echo "DEMO_ADMIN_EMAIL=admin@polylang-docs.test" >> "$GITHUB_ENV"
+          echo "DEMO_EDITOR_EMAIL=editor@polylang-docs.test" >> "$GITHUB_ENV"
+          mkdir -p build/supertext-polylang
+          cp supertext-polylang.php README.md LICENSE build/supertext-polylang/
+          cp -r includes assets languages build/supertext-polylang/
+          ( cd build && zip -qr supertext-polylang.zip supertext-polylang )
+          # The demo starts with this function in the next steps.
+          cat > /tmp/start_demo.sh <<'SH'
+          start_demo() { # $1: database, $2: DEMO_SKIP_PLUGIN
+            docker rm -f demo >/dev/null 2>&1 || true
+            docker run -d --name demo --network host \
+              -e PORT=80 -e DATABASE_URL="mysql://root:root@127.0.0.1:3306/$1" -e DEMO_SITE_URL="$SITE_URL" \
+              -e DEMO_ADMIN_EMAIL -e DEMO_ADMIN_PASSWORD -e DEMO_EDITOR_EMAIL -e DEMO_EDITOR_PASSWORD \
+              -e POLYLANG_PRO_ZIP_URL -e POLYLANG_PRO_ZIP_TOKEN -e DEMO_SKIP_PLUGIN="$2" \
+              -e SUPERTEXT_API_KEY=st-demo-key-0000 -e SUPERTEXT_ACCOUNT_EMAIL=docs@polylang-docs.test \
+              -e SUPERTEXT_VERSION_REPORTS=0 polylang-docs
+            for _ in $(seq 1 120); do
+              if curl -fsS "$SITE_URL/healthz" >/dev/null 2>&1 && logs=$(docker logs demo 2>&1) && grep -q "WordPress demo ready" <<< "$logs"; then break; fi
+              sleep 3
+            done
+            logs=$(docker logs demo 2>&1)
+            grep -q "WordPress demo ready" <<< "$logs" || { echo "$logs" | tail -50; exit 1; }
+            # What the demo installed and seeded (no secrets: the demo logs variable names only).
+            grep -E "^Installing |^Could not |\[demo\]" <<< "$logs" || true
+            grep -q "Installing Polylang Pro" <<< "$logs" || { echo "Polylang Pro wasn't installed: check POLYLANG_PRO_ZIP_TOKEN"; exit 1; }
+            docker exec demo mkdir -p /var/www/html/wp-content/mu-plugins
+            docker cp tests/e2e/stand-in/supertext-stand-in.php demo:/var/www/html/wp-content/mu-plugins/
+            docker exec demo chown -R www-data:www-data /var/www/html/wp-content/mu-plugins
+          }
+          SH
+
+      - name: Demo movie
+        working-directory: tests/e2e
+        env:
+          POLYLANG_PRO_ZIP_TOKEN: ${{ secrets.POLYLANG_PRO_ZIP_TOKEN }}
+        run: |
+          set -euo pipefail
+          # shellcheck disable=SC1091
+          source /tmp/start_demo.sh
+          ( cd ../.. && start_demo polylang_movie 0 )
+          node movie.mjs
+
+      - name: Install movie (a site without the plugin)
+        working-directory: tests/e2e
+        env:
+          POLYLANG_PRO_ZIP_TOKEN: ${{ secrets.POLYLANG_PRO_ZIP_TOKEN }}
+        run: |
+          set -euo pipefail
+          # shellcheck disable=SC1091
+          source /tmp/start_demo.sh
+          ( cd ../.. && start_demo polylang_install 1 )
+          PLUGIN_ZIP="$GITHUB_WORKSPACE/build/supertext-polylang.zip" node movie-install.mjs
+
+      - name: The MP4s (for YouTube)
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: movies
+          path: tests/e2e/movie/out/*.mp4
+          if-no-files-found: ignore
+
+      # Straight to main, no pull request to review: the GIF comes from the demo, and a push with the
+      # workflow's own token starts no other workflow.
+      - name: Commit the new GIF to main
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- docs/images && [ -z "$(git ls-files --others --exclude-standard docs/images)" ]; then
+            echo "GIF unchanged."; exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          message="Docs: demo movie recorded on the Polylang docs site"
+          git add docs/images
+          git commit -q -m "$message" -m "Made by the docs workflow: $RUN_URL"
+          images=$(git rev-parse HEAD)
+          remote="https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git"
+          for attempt in 1 2 3; do
+            if git push -q "$remote" HEAD:main; then exit 0; fi
+            echo "main moved on (attempt $attempt): putting the GIF on the newest main"
+            git fetch -q --depth=1 "$remote" main
+            git reset -q --hard FETCH_HEAD
+            git checkout "$images" -- docs/images
+            git commit -q -m "$message" -m "Made by the docs workflow: $RUN_URL"
+          done
+          exit 1

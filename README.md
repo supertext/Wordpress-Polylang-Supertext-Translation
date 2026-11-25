@@ -482,8 +482,11 @@ It runs as the **WordPress** service in the Railway project *supertext-cms-demos
 and redeploys on every push to `main`. On every start `demo/docker/entrypoint.sh` creates
 the database if needed, rebuilds `wp-config.php` from the variables, installs WordPress
 once, activates the plugins and runs `demo/docker/setup.php`: languages English (default),
-German, French and Italian, the demo accounts, the Supertext settings and five English
-pages and posts to translate. No one has to register or click through an installer.
+German, French and Italian, the demo accounts, the Supertext settings, the Polylang patch and
+five English pages and posts to translate; then `demo/docker/setup-mt.php` (a new request, so
+Polylang Pro knows Supertext once it is patched) turns on Polylang Pro's Machine Translation
+with Supertext and the AI key from `SUPERTEXT_API_KEY` while the service has no key yet. No one
+has to register or click through an installer.
 
 | Variable | Required | Purpose |
 |---|---|---|
@@ -491,13 +494,37 @@ pages and posts to translate. No one has to register or click through an install
 | `WORDPRESS_DB_NAME` | no | Database name (default: the path of `DATABASE_URL`, else `wordpress`); created if missing |
 | `DEMO_ADMIN_EMAIL`, `DEMO_ADMIN_PASSWORD` | yes | Administrator (login `admin` or the e-mail), created on the first start; existing accounts are never changed |
 | `DEMO_EDITOR_EMAIL`, `DEMO_EDITOR_PASSWORD` | no | Editor account (login `editor` or the e-mail), can translate into every demo language |
-| `SUPERTEXT_API_KEY`, `SUPERTEXT_ACCOUNT_EMAIL`, `SUPERTEXT_ENVIRONMENT` | no | Seed the human-translation settings while they are still empty |
-| `POLYLANG_PRO_ZIP_URL` | no | Private download URL of the Polylang Pro zip. Without it the demo runs **free Polylang**: the Supertext settings, orders, tools and string translation work, but AI and human translation of posts need Polylang Pro (the settings page says so). With it, Pro is installed and patched on start |
+| `SUPERTEXT_API_KEY`, `SUPERTEXT_ACCOUNT_EMAIL`, `SUPERTEXT_ENVIRONMENT` | no | Seed the human-translation settings while they are still empty; with Polylang Pro, `SUPERTEXT_API_KEY` is also the AI key of Polylang's Machine Translation while that has none |
+| `POLYLANG_PRO_ZIP_URL` | no | Private download URL of the Polylang Pro zip. Without it the demo runs **free Polylang**: the Supertext settings, orders, tools and string translation work, but AI and human translation of posts need Polylang Pro (the settings page says so). With it, Pro is installed and patched on start. On Railway: `http://demo-assets.railway.internal:8080/polylang/polylang-pro.3.9.2.zip` (the *demo-assets* service, from the private repository `supertext/integrations-demo-assets`) |
+| `POLYLANG_PRO_ZIP_TOKEN` | no | GitHub token for a `POLYLANG_PRO_ZIP_URL` on `api.github.com` (the docs movies download the zip from `supertext/integrations-demo-assets`) |
+| `DEMO_SKIP_PLUGIN` | no | `1`: a site without this plugin (the install movie installs it from a zip) |
 | `DEMO_SITE_URL` | no | Public URL (default `https://$RAILWAY_PUBLIC_DOMAIN`) |
 | `WORDPRESS_SALT` | no | Seed for the auth keys (default: derived from `DATABASE_URL`, so logins survive redeploys) |
 
 The container has no volume: uploaded media is lost on redeploy; posts, settings and
 accounts live in MySQL.
+
+### Demo movies
+
+Two English, voiced movies for the README and YouTube, recorded with Playwright and the shared
+movie kit (`tests/e2e/movie/`, ffmpeg, Piper voice "alba", CC BY 4.0) on the demo with Polylang Pro
+and the Supertext stand-in (`tests/e2e/stand-in/supertext-stand-in.php`, a must-use plugin that
+answers the Supertext API with real translations of the sample content, so no key is needed):
+
+- `npm run movie` (`tests/e2e/movie.mjs`): the demo editor translates *Welcome to the Supertext
+  demo* into German with the **Supertext AI Translation** bulk action and opens the German draft.
+  Writes `docs/images/demo.gif` and an MP4.
+- `npm run movie:install` (`tests/e2e/movie-install.mjs`, on a demo started with
+  `DEMO_SKIP_PLUGIN=1`, `PLUGIN_ZIP=…/supertext-polylang.zip`): upload and activate the plugin,
+  patch Polylang, enter the API key in Polylang's Machine Translation settings, the key check.
+  MP4 only.
+
+`.github/workflows/docs-media.yml` (*Docs movies*) records both on every push to `main` that
+touches the plugin, the demo or the movie scripts (or by hand): a new `demo.gif` is committed to
+`main`, both MP4s are attached to the run for YouTube. It needs the secret `POLYLANG_PRO_ZIP_TOKEN`
+(a read-only Contents token for `supertext/integrations-demo-assets`). MP4s are never committed
+(`tests/e2e/movie/out/` is git-ignored). Re-record when the bulk action, the settings page or
+the installation steps change.
 
 ## Code quality and security checks
 

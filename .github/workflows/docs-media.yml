@@ -101,7 +101,10 @@ jobs:
             grep -q "WordPress demo ready" <<< "$logs" || { echo "$logs" | tail -50; exit 1; }
             # What the demo installed and seeded (no secrets: the demo logs variable names only).
             grep -E "^Installing |^Could not |\[demo\]" <<< "$logs" || true
-            grep -q "Installing Polylang Pro" <<< "$logs" || { echo "Polylang Pro wasn't installed: check POLYLANG_PRO_ZIP_TOKEN"; exit 1; }
+            if ! grep -q "Installing Polylang Pro" <<< "$logs" || grep -q "Could not download POLYLANG_PRO_ZIP_URL" <<< "$logs"; then
+              echo "::error::Polylang Pro wasn't installed: set the secret POLYLANG_PRO_ZIP_TOKEN (read-only Contents token for supertext/integrations-demo-assets)"
+              exit 1
+            fi
             docker exec demo mkdir -p /var/www/html/wp-content/mu-plugins
             docker cp tests/e2e/stand-in/supertext-stand-in.php demo:/var/www/html/wp-content/mu-plugins/
             docker exec demo chown -R www-data:www-data /var/www/html/wp-content/mu-plugins

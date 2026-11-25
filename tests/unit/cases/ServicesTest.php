@@ -51,7 +51,6 @@ class ServicesTest extends TestCase {
 
 		// The per-request memo is static — clear it so tests don't bleed into each other.
 		$memo = new \ReflectionProperty( Services::class, 'memo' );
-		$memo->setAccessible( true );
 		$memo->setValue( null, array() );
 
 		Functions\when( 'get_user_locale' )->alias( fn() => $this->locale );

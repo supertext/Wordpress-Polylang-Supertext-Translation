@@ -8,7 +8,7 @@
 # SUPERTEXT_API_KEY, SUPERTEXT_ACCOUNT_EMAIL, SUPERTEXT_ENVIRONMENT, POLYLANG_PRO_ZIP_URL
 # (optional) — see docs/DEVELOPER.md → Demo site.
 
-FROM php:8.3-apache
+FROM php:8.5-apache
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends libicu-dev libzip-dev libpng-dev libjpeg62-turbo-dev libwebp-dev libfreetype6-dev unzip curl less mariadb-client \

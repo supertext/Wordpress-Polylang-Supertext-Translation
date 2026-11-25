@@ -5,7 +5,7 @@ Two suites. Neither is shipped to the server (the deploy excludes `tests/`).
 ## Unit tests — `tests/unit/` (PHPUnit + Brain Monkey)
 
 Fast, isolated tests of the plugin's logic with WordPress functions mocked (no DB,
-no live site). Run in CI on every push (`.github/workflows/unit-tests.yml`) on PHP 8.2 (the oldest supported) and 8.5.
+no live site). Run in CI on every push (`.github/workflows/unit-tests.yml`) on PHP 8.2 (the oldest supported), 8.5 and 8.6.
 
 Requirements: PHP 8.2+ with `dom`, `mbstring`, `libxml`, and Composer.
 

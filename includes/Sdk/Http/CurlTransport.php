@@ -67,11 +67,9 @@ final class CurlTransport implements HttpTransport
         $body = curl_exec($handle);
         if (!\is_string($body)) {
             $message = curl_error($handle);
-            curl_close($handle);
             throw new TransportException($message !== '' ? $message : 'HTTP request failed');
         }
         $status = (int) curl_getinfo($handle, CURLINFO_RESPONSE_CODE);
-        curl_close($handle);
 
         /** @var array<string, string> $responseHeaders */
         return new HttpResponse($status, $body, $responseHeaders);

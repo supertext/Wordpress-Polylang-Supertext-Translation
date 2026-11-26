@@ -520,7 +520,7 @@ final class TranslationFiles
     private static function chr(int $cp): string
     {
         if ($cp < 0x80) {
-            return \chr($cp);
+            return \chr($cp & 0xFF);
         }
         if ($cp < 0x800) {
             return \chr(0xC0 | ($cp >> 6)) . \chr(0x80 | ($cp & 0x3F));
@@ -529,7 +529,7 @@ final class TranslationFiles
             return \chr(0xE0 | ($cp >> 12)) . \chr(0x80 | (($cp >> 6) & 0x3F)) . \chr(0x80 | ($cp & 0x3F));
         }
 
-        return \chr(0xF0 | ($cp >> 18)) . \chr(0x80 | (($cp >> 12) & 0x3F)) . \chr(0x80 | (($cp >> 6) & 0x3F)) . \chr(0x80 | ($cp & 0x3F));
+        return \chr((0xF0 | ($cp >> 18)) & 0xFF) . \chr(0x80 | (($cp >> 12) & 0x3F)) . \chr(0x80 | (($cp >> 6) & 0x3F)) . \chr(0x80 | ($cp & 0x3F));
     }
 
     /** A small XML parser: elements, attributes, text, CDATA; comments and processing instructions skipped; no DTD. */

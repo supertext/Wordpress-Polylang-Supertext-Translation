@@ -366,6 +366,53 @@ final class Client
         return $batches;
     }
 
+    /**
+     * Corrections reviewers made that the integration hasn't written into the CMS yet
+     * (Supertext Localization Review; spec/corrections.json). Only the review service answers
+     * this: against Supertext's API it throws not_found. Follows all pages. segmentId is the
+     * data-st-id the integration sent, so this is useful when the integration builds its
+     * documents with its own ids (translateHtml()).
+     *
+     * @param string|null $politeness Politeness::DEFAULT, MORE or LESS; null: all
+     *
+     * @return list<Correction>
+     *
+     * @throws SupertextException
+     */
+    public function pendingCorrections(?string $targetLang = null, ?string $sourceLang = null, ?string $politeness = null): array
+    {
+        $all = [];
+        $after = null;
+        for ($page = 0; $page < Corrections::MAX_PAGES; $page++) {
+            [$corrections, $next] = Corrections::parsePage($this->request('GET', Corrections::path($targetLang, $sourceLang, $politeness, $after))->body);
+            array_push($all, ...$corrections);
+            if ($next === null || $next === $after) {
+                break;
+            }
+            $after = $next;
+        }
+
+        return $all;
+    }
+
+    /**
+     * Tells the review service these corrections are in the CMS now; returns how many it accepted.
+     * Only the fetched version counts: a newer correction stays pending.
+     *
+     * @param list<Correction> $corrections
+     *
+     * @throws SupertextException
+     */
+    public function acknowledgeCorrections(array $corrections): int
+    {
+        $total = 0;
+        foreach (array_chunk($corrections, Corrections::ACKNOWLEDGE_BATCH_SIZE) as $chunk) {
+            $total += Corrections::acknowledgedCount($this->request('POST', 'review/corrections/acknowledge', Corrections::acknowledgeBody($chunk), 'application/json')->body);
+        }
+
+        return $total;
+    }
+
     private static function filePath(string $fileId): string
     {
         return 'translate/ai/file/' . rawurlencode($fileId);

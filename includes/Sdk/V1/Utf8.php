@@ -33,7 +33,7 @@ final class Utf8
     public static function chr(int $codePoint): string
     {
         if ($codePoint < 0x80) {
-            return \chr($codePoint);
+            return \chr($codePoint & 0xFF);
         }
         if ($codePoint < 0x800) {
             return \chr(0xC0 | ($codePoint >> 6)) . \chr(0x80 | ($codePoint & 0x3F));
@@ -42,7 +42,7 @@ final class Utf8
             return \chr(0xE0 | ($codePoint >> 12)) . \chr(0x80 | (($codePoint >> 6) & 0x3F)) . \chr(0x80 | ($codePoint & 0x3F));
         }
 
-        return \chr(0xF0 | ($codePoint >> 18)) . \chr(0x80 | (($codePoint >> 12) & 0x3F))
+        return \chr((0xF0 | ($codePoint >> 18)) & 0xFF) . \chr(0x80 | (($codePoint >> 12) & 0x3F))
             . \chr(0x80 | (($codePoint >> 6) & 0x3F)) . \chr(0x80 | ($codePoint & 0x3F));
     }
 }

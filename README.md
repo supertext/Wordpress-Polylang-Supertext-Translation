@@ -90,7 +90,7 @@ else Supertext decides.
 #### Language codes
 
 Supertext accepts only the codes of its `GET features` list (the SDK's
-`Supertext\Polylang\Sdk\V1\Languages`, 28 sources and 37 targets): sources bare (`en`),
+`Supertext\Polylang\Sdk\V1\Languages`, 32 sources and 41 targets): sources bare (`en`),
 targets regional only for de/en/fr/it/pt (`de-CH`, `en-US`, `pt-BR`), a script for zh/sr
 (`zh-Hans`, `sr-Latn`), `gsw-u-sd-chzh`/`gsw-u-sd-chbe`, and bare for all others (`es`, `nl`,
 `sl`, `fi`, `ja`). Anything else is rejected with `INVALID_LANGUAGE_PAIR`.

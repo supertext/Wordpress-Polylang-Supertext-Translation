@@ -11,7 +11,7 @@ namespace Supertext\Polylang\Sdk;
 final class Supertext
 {
     /** This SDK's version (plugins pass it to Supertext Plugin Health as sdkVersion). The same number in every Supertext SDK. */
-    public const SDK_VERSION = '0.5.0';
+    public const SDK_VERSION = '0.7.0';
 
     private function __construct()
     {

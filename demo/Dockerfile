@@ -8,7 +8,7 @@
 # SUPERTEXT_API_KEY, SUPERTEXT_ACCOUNT_EMAIL, SUPERTEXT_ENVIRONMENT, POLYLANG_PRO_ZIP_URL
 # and POLYLANG_PRO_ZIP_TOKEN (optional), DEMO_SKIP_PLUGIN (install movie) — see docs/DEVELOPER.md → Demo site.
 
-FROM php:8.5-apache
+FROM php:8.5-apache@sha256:256c25149bca6639f538ece3c5dda90684409227dec546b87ca174950569b8f1
 
 # OPcache is built into PHP 8.5: no extension to install (php.ini still configures it).
 RUN apt-get update \

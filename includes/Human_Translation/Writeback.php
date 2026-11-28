@@ -161,9 +161,9 @@ class Writeback {
 
 		// Links to the site's own pages → their translation; the translation's own images stay.
 		$source = $model->post->get_language( $post->ID );
-		$slug   = is_object( $target ) && isset( $target->slug ) ? (string) $target->slug : '';
+		$slug   = (string) $target->slug;
 		$map    = Post_Links::localize_texts( $map, $source ? (string) $source->slug : '', $slug );
-		$before = '' !== $slug ? Post_Links::snapshot( $post->ID, $slug ) : null;
+		$before = Post_Links::snapshot( $post->ID, $slug );
 
 		$curlang_backup    = $polylang->curlang;
 		$polylang->curlang = null;
@@ -211,7 +211,7 @@ class Writeback {
 		return array(
 			'filled'          => $filled,
 			'errors'          => $errors,
-			'images_to_check' => array() === $errors && '' !== $slug ? Post_Links::merge( $post->ID, $slug, $before ) : 0,
+			'images_to_check' => array() === $errors ? Post_Links::merge( $post->ID, $slug, $before ) : 0,
 		);
 	}
 

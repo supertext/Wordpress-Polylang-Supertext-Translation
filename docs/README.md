@@ -41,6 +41,7 @@ translation** service in **Polylang Pro**.
   - [Gravity Forms](#gravity-forms)
   - [Page screenshots (VibeBoost)](#page-screenshots-vibeboost-screenshots)
   - [Translation files (XLIFF or HTML)](#translation-files-xliff-or-html)
+  - [Links and images](#links-and-images)
   - [When a translation can't start](#when-a-translation-cant-start)
 - [Compatibility](#compatibility)
 - [How it works](#how-it-works)
@@ -310,10 +311,13 @@ plugin's own settings page.
      callback (off by default, so the first result wins and your manual edits are kept).
    - **Translation status** — whether the written‑back translation is a **Draft** or
      **Published**.
-6. Optionally review the **Secret preview links** and **Page screenshots** switches (both on
+6. **Links** — *Point links to the translated pages* (on by default): links to your own
+   posts and pages point to their translation in the same language, in AI translations,
+   orders and imported files. See [Links and images](#links-and-images).
+7. Optionally review the **Secret preview links** and **Page screenshots** switches (both on
    by default). *Page screenshots* attaches a snapshot of each ordered page to the order for
    the translator — see [Page screenshots (VibeBoost)](#page-screenshots-vibeboost-screenshots).
-7. Save.
+8. Save.
 
 #### Translation types
 
@@ -561,6 +565,36 @@ mark a text as untranslated), so only import HTML files that have been translate
 | *The file is too large (at most 10 MB).* | Export fewer languages per file. |
 | *Sorry, you are not allowed to edit this post.* | You may not edit the original or its translation. |
 
+### Links and images
+
+**Links point to the translated pages.** Links to your own posts and pages point to their
+translation in the same language: a link to *About us* in the English text becomes a link to
+*Über uns* (`/de/ueber-uns/`) in the German translation, with its anchor (`#team`) and query
+kept. This applies to AI translations (from the editor and the bulk action), professional
+translations and imported translation files. A link to a page that has no translation into that
+language yet stays on the original; translate the page with the link again once the linked page
+is translated. Links to other websites stay as they are. Administrators can turn this off under
+Supertext → Settings (*Point links to the translated pages*).
+
+**Your own images are kept.** When a translation is written again (a professional translation
+delivered again with *Allow multiple write‑backs*, or an imported translation file), it keeps the
+images it has of its own: if you replaced an image in the German version (say, a screenshot with
+German labels), it stays, with the new alternative text and caption, as long as the original's
+image in that place hasn't changed. If the original's image was replaced, the translation gets
+the new one and the image is marked **To check**.
+
+**Supertext → Images** lists every image of the translations Supertext wrote, the original's
+beside the translation's, with its status: *Same as the original*, *Own image* or *To check*
+(with the reason). Replace the image in the translation if it needs a localized version, then
+click **Mark as checked**: the image it has then counts as its own.
+
+Images are lined up by their place: the first image block of the original with the first of
+the translation, and so on. If you add or remove images in a translation only, it gets the
+original's images the next time, and those that change are marked *To check*. Images in other
+blocks (cover, media & text) always follow the original. Translations created before version
+1.3, or with Polylang's own button in the editor, have no record yet: their own images are kept
+and marked *To check* the first time they are written again.
+
 ### When a translation can't start
 
 If a language has no Supertext language yet, AI translation into or from it stops with:
@@ -600,6 +634,7 @@ it.** There is no separate, parallel content parser to keep in sync.
 |---------|-------|
 | **YOOtheme Pro** | Polylang does **not** handle YOOtheme's JSON layout out of the box. This plugin adds a **field‑by‑field** integration (see [YOOtheme pages](#yootheme-pages)) so its text translates without corrupting the layout. `code` elements are deliberately skipped. |
 | **Gravity Forms** | Forms aren't posts, so Polylang can't translate them. This plugin adds a **per‑form AI translation** tool and injects the translation at render time (see [Gravity Forms](#gravity-forms)). Enable it from **Detect plugins** on the Settings page. |
+| **Links and images** | Links to your own pages point to their translation; a translation's own images are kept when it is written again (see [Links and images](#links-and-images)). |
 | **Page screenshots** | Optionally attaches a **[VibeBoost](https://vibeboost.me)** screenshot of each page to its human‑translation order as a visual reference (see [Page screenshots](#page-screenshots-vibeboost-screenshots)). On by default. |
 
 ### Not translated
@@ -630,6 +665,16 @@ it.** There is no separate, parallel content parser to keep in sync.
 
 Both paths share the same field extraction, so page‑builder (YOOtheme) and ACF content are
 handled the same way.
+- **Links and images** (`includes/Content/`): `Links` rewrites the `href`s of the translated
+  texts through `Post_Links::resolver()` (own‑site address → `url_to_postid()` → a post in the
+  source language → `pll_get_post()` → `get_permalink()`; the home page → `pll_home_url()`),
+  in the AI client (`Client::translate()`) and in `Writeback::save_map()` (orders, files).
+  `Images` keeps a translation's own images: `save_map()` reads the translation before Polylang
+  writes it (`Post_Links::snapshot()`) and merges the images after (`Post_Links::merge()`), slot
+  by slot (the n‑th `core/image` block, or `<img>` of classic content), with the record of the
+  last translation in the post meta `_supertext_images` (`originalSrc`, `src`, `status`
+  `same`/`own`/`check`). The bulk action writes the record of each new translation.
+  *Supertext → Images* (`Admin\Images_Page`) lists them and sets *Mark as checked*.
 
 ---
 

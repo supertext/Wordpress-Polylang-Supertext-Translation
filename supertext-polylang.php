@@ -157,6 +157,9 @@ add_filter(
 // General "String Translation" page over all Polylang strings (Supertext submenu).
 \Supertext\Polylang\Admin\String_Translations_Page::init();
 
+// Supertext → Images (localized images kept when translations are written again, "Mark as checked").
+\Supertext\Polylang\Admin\Images_Page::init();
+
 // Human translation product types, loaded from the configured Supertext ServiceId
 // (flushes its cache when the settings change).
 \Supertext\Polylang\Human_Translation\Services::init();

@@ -7,6 +7,7 @@ namespace Supertext\Polylang\Human_Translation;
 
 defined( 'ABSPATH' ) || exit;
 
+use Supertext\Polylang\Content\Post_Links;
 use DOMDocument;
 use DOMXPath;
 use WP_Post;
@@ -152,11 +153,17 @@ class Writeback {
 	 * @param WP_Post               $post   Source post.
 	 * @param \PLL_Language         $target Target language.
 	 * @param array<string, string> $map    Translation context => translated string.
-	 * @return array{filled: int, errors: string[]}
+	 * @return array{filled: int, errors: string[], images_to_check: int}
 	 */
 	public static function save_map( WP_Post $post, $target, array $map ): array {
 		$polylang = PLL();
 		$model    = $polylang->model;
+
+		// Links to the site's own pages → their translation; the translation's own images stay.
+		$source = $model->post->get_language( $post->ID );
+		$slug   = is_object( $target ) && isset( $target->slug ) ? (string) $target->slug : '';
+		$map    = Post_Links::localize_texts( $map, $source ? (string) $source->slug : '', $slug );
+		$before = '' !== $slug ? Post_Links::snapshot( $post->ID, $slug ) : null;
 
 		$curlang_backup    = $polylang->curlang;
 		$polylang->curlang = null;
@@ -202,8 +209,9 @@ class Writeback {
 		}
 
 		return array(
-			'filled' => $filled,
-			'errors' => $errors,
+			'filled'          => $filled,
+			'errors'          => $errors,
+			'images_to_check' => array() === $errors && '' !== $slug ? Post_Links::merge( $post->ID, $slug, $before ) : 0,
 		);
 	}
 

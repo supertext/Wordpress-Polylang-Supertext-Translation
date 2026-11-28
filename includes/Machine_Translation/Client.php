@@ -7,6 +7,7 @@ namespace Supertext\Polylang\Machine_Translation;
 
 defined( 'ABSPATH' ) || exit;
 
+use Supertext\Polylang\Content\Post_Links;
 use Supertext\Polylang\Reporting\Commando;
 use Supertext\Polylang\Sdk\V1\Client as SdkClient;
 use Supertext\Polylang\Sdk\V1\Segment;
@@ -245,6 +246,10 @@ class Client implements Client_Interface {
 		$translated = $this->translate_strings( $sources, $target_language, $source_language );
 		if ( is_wp_error( $translated ) ) {
 			return $translated;
+		}
+		// Links to the site's own pages → their translation (setting *Point links to the translated pages*).
+		if ( $source_language instanceof PLL_Language ) {
+			$translated = Post_Links::localize_texts( $translated, $source_language->slug, $target_language->slug );
 		}
 
 		foreach ( $entries as $i => $entry ) {

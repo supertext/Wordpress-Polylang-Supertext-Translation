@@ -5,7 +5,9 @@ appears in *Languages → Settings → Machine Translation* right next to DeepL.
 translated directly through Supertext — **no DeepL proxy required**. It also adds
 **human (professional)** translation orders directly from WordPress, and
 **translation files**: export for translation (XLIFF 1.2 or HTML) and import of translated
-files (Supertext SDK 0.5.0).
+files (Supertext SDK 0.5.0). Links to your own pages point to their translation, and a
+translation's own images (such as localized screenshots) are kept when it is written again
+(*Supertext → Images*; see [Links and images](docs/README.md#links-and-images)).
 
 > 📘 **Looking for installation & usage instructions (with screenshots)?**
 > See the **[User Guide](docs/README.md)**. This README covers the developer/architecture

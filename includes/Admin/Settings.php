@@ -103,6 +103,7 @@ class Settings {
 			'service_id'                => self::DEFAULT_SERVICE_ID,
 			'allow_multiple_writebacks' => false,
 			'writeback_status'          => 'draft',
+			'translate_links'           => true,
 			'preview_links_enabled'     => true,
 			'screenshots_enabled'       => true,
 			'screenshots_api_key'       => '',
@@ -135,6 +136,7 @@ class Settings {
 		$status                  = (string) ( $input['writeback_status'] ?? 'draft' );
 		$out['writeback_status'] = in_array( $status, array( 'draft', 'publish' ), true ) ? $status : 'draft';
 
+		$out['translate_links']       = ! empty( $input['translate_links'] );
 		$out['preview_links_enabled'] = ! empty( $input['preview_links_enabled'] );
 		$out['screenshots_enabled']   = ! empty( $input['screenshots_enabled'] );
 		$out['screenshots_api_key']   = sanitize_text_field( (string) ( $input['screenshots_api_key'] ?? '' ) );
@@ -350,6 +352,15 @@ class Settings {
 	}
 
 	/**
+	 * Whether links to the site's own pages point to their translation (Content\Post_Links).
+	 *
+	 * @return bool
+	 */
+	public static function translate_links(): bool {
+		return (bool) self::get()['translate_links'];
+	}
+
+	/**
 	 * Whether the secret-link public preview of unpublished posts/pages is enabled.
 	 * Master switch for the per-post preview metabox, the front-end token access, and
 	 * the screenshot feature's ability to reach draft pages.
@@ -531,6 +542,33 @@ class Settings {
 							<option value="publish" <?php selected( $current['writeback_status'], 'publish' ); ?>><?php esc_html_e( 'Published', 'supertext-polylang' ); ?></option>
 						</select>
 						<p class="description"><?php esc_html_e( 'Status applied to the translated post when a translation is written back.', 'supertext-polylang' ); ?></p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><?php esc_html_e( 'Links', 'supertext-polylang' ); ?></th>
+					<td>
+						<label for="supertext-translate-links">
+							<input
+								type="checkbox"
+								name="<?php echo esc_attr( self::OPTION . '[translate_links]' ); ?>"
+								id="supertext-translate-links"
+								value="1"
+								<?php checked( ! empty( $current['translate_links'] ) ); ?>
+							/>
+							<?php esc_html_e( 'Point links to the translated pages', 'supertext-polylang' ); ?>
+						</label>
+						<p class="description">
+							<?php esc_html_e( 'Links to this site’s own posts and pages point to their translation in the same language, with anchors kept. Links to pages without a translation yet stay on the original. Applies to AI translations, professional translations and imported translation files.', 'supertext-polylang' ); ?>
+						</p>
+						<p class="description">
+							<?php
+							printf(
+								/* translators: %s: link to the Supertext → Images page. */
+								esc_html__( 'Images: translating again keeps a translation’s own images (such as localized screenshots) as long as the original’s image in that place doesn’t change. See %s.', 'supertext-polylang' ),
+								'<a href="' . esc_url( admin_url( 'admin.php?page=' . Images_Page::SLUG ) ) . '">' . esc_html__( 'Supertext → Images', 'supertext-polylang' ) . '</a>'
+							);
+							?>
+						</p>
 					</td>
 				</tr>
 				<tr>

@@ -1025,3 +1025,75 @@ msgstr "Auf dem Server durch %s festgelegt; ändern Sie es dort."
 #. translators: %s: when it was checked, e.g. "checked November 11, 2026 11:00 am".
 msgid "Works · %s"
 msgstr "Funktioniert · %s"
+
+msgid "Images to check: %d (Supertext → Images)."
+msgstr "Zu prüfende Bilder: %d (Supertext → Bilder)."
+
+msgid "Images"
+msgstr "Bilder"
+
+msgid "The images of the translations Supertext wrote. Translating again keeps a translation’s own image (such as a localized screenshot) as long as the original’s image in that place doesn’t change. If the original’s image was replaced, the translation gets the new one and it is marked “To check”: replace it in the translation if it needs a localized version, then click “Mark as checked”."
+msgstr "Die Bilder der Übersetzungen, die Supertext geschrieben hat. Beim erneuten Übersetzen behält eine Übersetzung ihr eigenes Bild (etwa einen lokalisierten Screenshot), solange sich das Bild des Originals an dieser Stelle nicht ändert. Wurde das Bild des Originals ersetzt, erhält die Übersetzung das neue Bild, und es wird als «Zu prüfen» markiert: Ersetzen Sie es in der Übersetzung, wenn es eine lokalisierte Fassung braucht, und klicken Sie dann auf «Als geprüft markieren»."
+
+msgid "Marked as checked."
+msgstr "Als geprüft markiert."
+
+msgid "To check"
+msgstr "Zu prüfen"
+
+msgid "Translation"
+msgstr "Übersetzung"
+
+msgid "Original’s image"
+msgstr "Bild des Originals"
+
+msgid "Translation’s image"
+msgstr "Bild der Übersetzung"
+
+msgid "No images to check."
+msgstr "Keine Bilder zu prüfen."
+
+msgid "No translated images yet."
+msgstr "Noch keine übersetzten Bilder."
+
+msgid "Same as the original"
+msgstr "Gleich wie im Original"
+
+msgid "Own image"
+msgstr "Eigenes Bild"
+
+msgid "The original’s image was replaced; the translation had its own and now has the new one."
+msgstr "Das Bild des Originals wurde ersetzt; die Übersetzung hatte ein eigenes und hat jetzt das neue."
+
+msgid "Translated before Supertext tracked images; the translation’s own image was kept."
+msgstr "Übersetzt, bevor Supertext Bilder verfolgte; das eigene Bild der Übersetzung wurde beibehalten."
+
+msgid "Images were added or removed in the translation only; it now has the original’s images."
+msgstr "In der Übersetzung wurden Bilder hinzugefügt oder entfernt; sie hat jetzt die Bilder des Originals."
+
+msgid "(no title)"
+msgstr "(kein Titel)"
+
+msgid "Image %d"
+msgstr "Bild %d"
+
+msgid "Mark as checked"
+msgstr "Als geprüft markieren"
+
+msgid "Links"
+msgstr "Links"
+
+msgid "Point links to the translated pages"
+msgstr "Links auf die übersetzten Seiten setzen"
+
+msgid "Links to this site’s own posts and pages point to their translation in the same language, with anchors kept. Links to pages without a translation yet stay on the original. Applies to AI translations, professional translations and imported translation files."
+msgstr "Links auf eigene Beiträge und Seiten dieser Website führen zu deren Übersetzung in derselben Sprache, Anker bleiben erhalten. Links auf Seiten ohne Übersetzung bleiben beim Original. Gilt für KI-Übersetzungen, professionelle Übersetzungen und importierte Übersetzungsdateien."
+
+msgid "Images: translating again keeps a translation’s own images (such as localized screenshots) as long as the original’s image in that place doesn’t change. See %s."
+msgstr "Bilder: Beim erneuten Übersetzen behält eine Übersetzung ihre eigenen Bilder (etwa lokalisierte Screenshots), solange sich das Bild des Originals an dieser Stelle nicht ändert. Siehe %s."
+
+msgid "Supertext → Images"
+msgstr "Supertext → Bilder"
+
+msgid "Sorry, you are not allowed to edit this post."
+msgstr "Sie haben leider keine Berechtigung, diesen Beitrag zu bearbeiten."

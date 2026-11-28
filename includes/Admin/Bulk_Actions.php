@@ -7,6 +7,7 @@ namespace Supertext\Polylang\Admin;
 
 defined( 'ABSPATH' ) || exit;
 
+use Supertext\Polylang\Content\Post_Links;
 use WP_Error;
 use WP_Post;
 use WP_Screen;
@@ -414,6 +415,8 @@ class Bulk_Actions {
 		if ( $result->has_errors() ) {
 			return false;
 		}
+		// The image record of the new translation (so translating it again keeps its own images).
+		Post_Links::merge( $post_id, $target_lang, null );
 
 		return $model->post->get_translation( $post_id, $target_lang ) > 0;
 	}
